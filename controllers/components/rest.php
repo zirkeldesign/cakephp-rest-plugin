@@ -1,6 +1,5 @@
 <?php
 Class RestComponent extends Object{
-    public $components = array('RequestHandler');
     public $Controller;
 
     public $codes = array(
@@ -80,6 +79,17 @@ Class RestComponent extends Object{
                 }
             }
         }
+        
+        switch($this->Controller->params['url']['ext']) {
+            case 'json': 
+                $this->Controller->RequestHandler->setContent('json', 'text/javascript');
+                $this->Controller->RequestHandler->respondAs('json');
+                break;
+            case 'xml':
+                $this->Controller->RequestHandler->setContent('xml', 'text/xml');
+                break;
+        }
+
 
         $this->Controller->set(compact('restData'));
     }
