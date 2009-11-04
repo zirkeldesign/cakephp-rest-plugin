@@ -41,7 +41,8 @@ Class RestComponent extends Object{
 
         // Setup the controller so it can use
         // the view inside this plugin
-        $this->Controller->plugin = 'rest';
+        $this->Controller->layout   = 'default';
+        $this->Controller->plugin   = 'rest';
         $this->Controller->viewPath = 'generic';
     }
 
@@ -53,12 +54,32 @@ Class RestComponent extends Object{
         $this->Controller = &$Controller;
 
         $this->Controller->helpers['Rest.RestXml'] = $this->_settings;
+        $this->Controller->helpers['javascript'] = array();
         
         if (in_array($this->Controller->params['url']['ext'], $this->_settings['extensions'])) {
             // Set debug
             Configure::write('debug', $this->_settings['debug']);
             $this->Controller->set('debug', $this->_settings['debug']);
         }
+
+        // Set restdata
+        $restData = array();
+        if (!empty($this->_settings[$this->Controller->action])) {
+            $opt = $this->_settings[$this->Controller->action];
+            foreach ($opt['viewVars'] as $viewVar) {
+                if (false !== strpos($viewVar, '::')) {
+                    $parts = explode('::', $viewVar);
+                    if (count($parts) > 2) {
+                        trigger_error('Not yet supported', E_USER_ERROR);
+                    }
+                    $restData[$parts[0]][$parts[1]] = $this->Controller->viewVars[$parts[0]][$parts[1]];
+                } else {
+                    $restData[$viewVar] = $this->Controller->viewVars[$viewVar];
+                }
+            }
+        }
+
+        $this->Controller->set(compact('restData'));
     }
 }
 ?>

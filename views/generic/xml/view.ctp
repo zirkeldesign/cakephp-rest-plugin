@@ -1,8 +1,6 @@
 <?php
-/* 
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
+if ($debug > 1) {
+    echo '<xmp>';
+}
+echo $restXml->serialize($this->viewVars['restData']);
 ?>
-henk

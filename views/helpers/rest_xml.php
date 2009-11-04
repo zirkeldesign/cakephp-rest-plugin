@@ -3,8 +3,20 @@ App::import('Helper', 'Xml');
 
 class RestXmlHelper extends XmlHelper {
 	function serialize($data, $name = null, $options = array()) {
-		return $this->_serialize($data, $name);
+        $xml = $this->_serialize($data, $name);
+        $xmlClean = $this->_xmlCleanup($xml);
+		return $xmlClean;
 	}
+
+    protected function _xmlCleanup($xml) {
+        // Indentation
+        $doc = new DOMDocument('1.0');
+        $doc->preserveWhiteSpace = false;
+        $doc->loadXML($xml);
+        $doc->formatOutput = true;
+
+        return $doc->saveXML();
+    }
 
 	function _serialize($data, $name = null) {
 		$type = $this->_getType($data);
