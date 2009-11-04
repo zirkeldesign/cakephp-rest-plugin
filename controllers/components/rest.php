@@ -47,7 +47,7 @@ Class RestComponent extends Object{
     }
 
     public function startup (&$Controller) {
-
+        
     }
     
     public function beforeRender (&$Controller) {
@@ -56,11 +56,13 @@ Class RestComponent extends Object{
         $this->Controller->helpers['Rest.RestXml'] = $this->_settings;
         $this->Controller->helpers['javascript'] = array();
         
-        if (in_array($this->Controller->params['url']['ext'], $this->_settings['extensions'])) {
-            // Set debug
-            Configure::write('debug', $this->_settings['debug']);
-            $this->Controller->set('debug', $this->_settings['debug']);
+        if (!in_array($this->Controller->params['url']['ext'], $this->_settings['extensions'])) {
+            return;
         }
+        
+        // Set debug
+        Configure::write('debug', $this->_settings['debug']);
+        $this->Controller->set('debug', $this->_settings['debug']);
 
         // Set restdata
         $restData = array();
