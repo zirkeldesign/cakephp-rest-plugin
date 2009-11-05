@@ -1,7 +1,5 @@
 <?php
-Class RestComponent extends Object{
-    public $Controller;
-
+Class RestComponent extends Object {
     public $codes = array(
         200 => 'OK',
         400 => 'Bad Request',
@@ -20,78 +18,133 @@ Class RestComponent extends Object{
         504 => 'Gateway Time-out',
     );
 
+    protected $_active = false;
+    protected $_errors = array();
+
     protected $_settings = array(
         // Passed as Component options
         'extensions' => array('xml', 'json'),
+        'viewsFromPlugin' => true,
 
         // Passed as Both Helper & Component options
         'debug' => '0',
-
+        
         // Passed as Helper options
-        'method' => null,
+        'view' => array(
+            'restVars' => array(),
+        ),
     );
 
-    public function initialize (&$Controller, $settings=array()) {
-        $this->Controller = &$Controller;
+    public function initialize (&$Controller, $settings = array()) {
         $this->_settings = am($this->_settings, $settings);
 
         // Make it an integer always
         $this->_settings['debug'] = (int)$this->_settings['debug'];
 
-        // Setup the controller so it can use
-        // the view inside this plugin
-        $this->Controller->layout   = 'default';
-        $this->Controller->plugin   = 'rest';
-        $this->Controller->viewPath = 'generic';
+        $this->_active = in_array($Controller->params['url']['ext'], $this->_settings['extensions']);
+
+        if (!$this->_active) {
+            return;
+        }
+
+        // Don't know why,  but RequestHandler isn't settings
+        // Content-Type right;  so using header() for now instead
+        switch($Controller->params['url']['ext']) {
+            case 'json':
+                // text/javascript
+                // application/json
+                if ($this->_settings['debug'] < 2) {
+                    header('Content-Type: text/javascript');
+                    $Controller->RequestHandler->setContent('json', 'text/javascript');
+                    $Controller->RequestHandler->respondAs('json');
+                }
+                $Controller->helpers['Rest.RestJson'] = $this->_settings;
+                break;
+            case 'xml':
+                if ($this->_settings['debug'] < 2) {
+                    header('Content-Type: text/xml');
+                    $Controller->RequestHandler->setContent('xml', 'text/xml');
+                    $Controller->RequestHandler->respondAs('xml');
+                }
+                $Controller->helpers['Rest.RestXml'] = $this->_settings;
+                break;
+            default:
+                $this->_active = false;
+                break;
+        }
+
     }
 
     public function startup (&$Controller) {
-        
+        if (!$this->_active) {
+            return;
+        }
+        if ($this->_settings['viewsFromPlugin']) {
+            // Setup the controller so it can use
+            // the view inside this plugin
+            $Controller->layout     = 'default';
+            $Controller->plugin     = 'rest';
+            $Controller->viewPath   = 'generic' . DS . $Controller->params['url']['ext'];
+        }
+    }
+
+    public function isActive() {
+        return $this->_active;
+    }
+
+    public function error($format, $arg1 = null, $arg2 = null) {
+        $args = func_get_args();
+        if (count($args) > 1) {
+            $format = vsprintf($format, $args);
+        }
+        $this->_errors[] = $format;
+        return false;
+    }
+
+    public function getErrors($formatted) {
+        if (empty($this->_errors)) {
+            return null;
+        }
+        return $this->_errors;
     }
     
     public function beforeRender (&$Controller) {
-        $this->Controller = &$Controller;
-
-        $this->Controller->helpers['Rest.RestXml'] = $this->_settings;
-        $this->Controller->helpers['javascript'] = array();
-        
-        if (!in_array($this->Controller->params['url']['ext'], $this->_settings['extensions'])) {
+        if (!$this->_active) {
             return;
         }
         
         // Set debug
         Configure::write('debug', $this->_settings['debug']);
-        $this->Controller->set('debug', $this->_settings['debug']);
+        $Controller->set('debug', $this->_settings['debug']);
 
-        // Set restdata
-        $restData = array();
-        if (!empty($this->_settings[$this->Controller->action])) {
-            $opt = $this->_settings[$this->Controller->action];
-            foreach ($opt['viewVars'] as $viewVar) {
-                if (false !== strpos($viewVar, '::')) {
-                    $parts = explode('::', $viewVar);
-                    if (count($parts) > 2) {
-                        trigger_error('Not yet supported', E_USER_ERROR);
-                    }
-                    $restData[$parts[0]][$parts[1]] = $this->Controller->viewVars[$parts[0]][$parts[1]];
-                } else {
-                    $restData[$viewVar] = $this->Controller->viewVars[$viewVar];
-                }
+        // Collect Vars we want in rest
+        $result = array();
+        foreach ((array)@$this->_settings[$Controller->action]['restVars'] as $var=>$restVar) {
+            if (is_numeric($var)) {
+                $var = $restVar;
             }
-        }
-        
-        switch($this->Controller->params['url']['ext']) {
-            case 'json': 
-                $this->Controller->RequestHandler->setContent('json', 'text/javascript');
-                $this->Controller->RequestHandler->respondAs('json');
-                break;
-            case 'xml':
-                $this->Controller->RequestHandler->setContent('xml', 'text/xml');
-                break;
+
+            if (false !== strpos($var, '::')) {
+                list($containerName, $var) = explode('::', $var);
+                $container = &$Controller->viewVars[$containerName];
+            } else {
+                $containerName = 'viewVars';
+                $container = &$Controller->viewVars;
+            }
+
+            if (!isset($container[$var])) {
+                $this->error('var "%s" was not found in %s',
+                        $var, $containerName);
+            }
+            $result[$restVar] = $container[$var];
         }
 
+        $restVars = array(
+            'errors' => $this->getErrors(true),
+            'results' => $result,
+        );
 
-        $this->Controller->set(compact('restData'));
+        $Controller->set('restVars', $restVars);
     }
 }
 ?>

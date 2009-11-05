@@ -1,20 +1,23 @@
 <?php
 App::import('Helper', 'Xml');
-
 class RestXmlHelper extends XmlHelper {
 	function serialize($data, $name = null, $options = array()) {
-        $xml = $this->_serialize($data, $name);
-        $xmlClean = $this->_xmlCleanup($xml);
-		return $xmlClean;
+        #prd(compact('data'));
+        #$xml = $this->_serialize($data, $name);
+        $xml = parent::serialize($data, array('format' => 'tags'));
+        $xml = $this->_xmlCleanup($xml);
+		return $xml;
 	}
 
     protected function _xmlCleanup($xml) {
         // Indentation
         $doc = new DOMDocument('1.0');
         $doc->preserveWhiteSpace = false;
-        $doc->loadXML($xml);
+        if (!$doc->loadXML($xml)) {
+            prd($xml);
+        }
         $doc->formatOutput = true;
-
+        
         return $doc->saveXML();
     }
 
