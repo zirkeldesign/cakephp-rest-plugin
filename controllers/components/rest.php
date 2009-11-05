@@ -101,10 +101,23 @@ Class RestComponent extends Object {
         return false;
     }
 
-    public function getErrors($formatted) {
+    public function getErrors($formatted = false) {
         if (empty($this->_errors)) {
             return null;
         }
+
+        if ($formatted) {
+            $errs = array();
+            foreach ($this->_errors as $i=>$err) {
+                $errs[] = array(
+                    'error' => array(
+                        'str' => $err,
+                    ),
+                );
+            }
+            return $errs;
+        }
+
         return $this->_errors;
     }
     
@@ -139,10 +152,12 @@ Class RestComponent extends Object {
             $result[$restVar] = $container[$var];
         }
 
-        $restVars = array(
-            'errors' => $this->getErrors(true),
-            'results' => $result,
-        );
+        $restVars = array();
+        $e = $this->getErrors(true);
+        if ($e) {
+            $restVars['errors'] = $e;
+        }
+        $restVars['results'] = $result;
 
         $Controller->set('restVars', $restVars);
     }

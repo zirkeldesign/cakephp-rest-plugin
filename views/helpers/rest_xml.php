@@ -1,11 +1,20 @@
 <?php
 App::import('Helper', 'Xml');
+/**
+ * Ran into bugs:
+ * https://trac.cakephp.org/ticket/6538
+ *
+ */
 class RestXmlHelper extends XmlHelper {
 	function serialize($data, $name = null, $options = array()) {
         #prd(compact('data'));
-        #$xml = $this->_serialize($data, $name);
-        $xml = parent::serialize($data, array('format' => 'tags'));
-        $xml = $this->_xmlCleanup($xml);
+
+        // @todo: None of these serialzers work properly for
+        // generic arrays
+
+        $xml = $this->_serialize($data, $name);
+        #$xml = parent::serialize($data, array('format' => 'tags'));
+        #$xml = $this->_xmlCleanup($xml);
 		return $xml;
 	}
 
@@ -20,7 +29,7 @@ class RestXmlHelper extends XmlHelper {
         
         return $doc->saveXML();
     }
-
+    
 	function _serialize($data, $name = null) {
 		$type = $this->_getType($data);
 		if ($type == 'string') {
