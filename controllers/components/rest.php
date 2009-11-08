@@ -69,7 +69,8 @@ Class RestComponent extends Object {
                 $Controller->helpers['Rest.RestXml'] = $this->_settings;
                 break;
             default:
-                $this->_active = false;
+                trigger_error(sprintf('Unsupported extension: "%s"',
+                        $Controller->params['url']['ext']), E_USER_ERROR);
                 break;
         }
 
