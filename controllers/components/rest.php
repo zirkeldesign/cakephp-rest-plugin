@@ -184,10 +184,10 @@ Class RestComponent extends Object {
 
 
         $restVars = array(
-            'Request-meta' => array(
-                'Status' => $status,
-                'Feedback' => $feedback,
-                'Server' => $server,
+            'request' => array(
+                'status' => $status,
+                'messages' => $feedback,
+                'headers' => $server,
             ),
         );
         

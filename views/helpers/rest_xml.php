@@ -7,6 +7,7 @@ App::import('Helper', 'Xml');
  */
 class RestXmlHelper extends AppHelper {
     public $helpers = array('Xml');
+
 	function serialize($data, $options = array()) {
         #prd(compact('data'));
         // @todo: None of these serialzers work properly for
@@ -83,7 +84,8 @@ class RestXmlHelper extends AppHelper {
 		if (empty($name)) {
 			$name = 'var';
 		}
-		$tag = str_replace('_', '-', Inflector::underscore($name));
+		#$tag = str_replace('_', '-', Inflector::underscore($name));
+		$tag = str_replace('-', '_', Inflector::underscore($name));
 		// Start tag
 		$result = '<' . $tag;
 		// Type attribute

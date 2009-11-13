@@ -33,16 +33,16 @@ Implementation
 
 Controller
 -----------
-    class ClustersController extends AppController {
+    class ServersController extends AppController {
         public $components = array(
             'RequestHandler',
             'Rest.Rest' => array(
                 'debug' => 0,
                 'view' => array(
-                    'extract' => array('server.Server' => 'Servers.0'),
+                    'extract' => array('server.Server' => 'servers.0'),
                 ),
                 'index' => array(
-                    'extract' => array('rows.{n}.Server' => 'Servers'),
+                    'extract' => array('rows.{n}.Server' => 'servers'),
                 ),
             ),
         );
@@ -56,7 +56,7 @@ Router
 ------
     // Add an element for each controller that you want to open up
     // in the REST API
-    Router::mapResources(array('clusters'));
+    Router::mapResources(array('servers'));
 
     // Add xml + json to your parseExtensions
     Router::parseExtensions('rss', 'json', 'xml', 'json', 'pdf');
