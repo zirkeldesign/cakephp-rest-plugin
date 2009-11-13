@@ -61,18 +61,12 @@ Controller
         }
 
         public function redirect($url, $status = null, $exit = true) {
-            if ($this->_isAjax()) {
-                // Ajax stuff can't redirect
-                $flash = $this->Session->read('Message.flash');
-                $this->Session->del('Message.flash');
-                echo json_encode($flash);
-                exit;
-            } elseif ($this->_isRest()) {
+            if ($this->_isRest()) {
                 // Just don't redirect.. Let REST die gracefully
-                $this->Rest->abort($this);
-            } else {
-                parent::redirect($url, $status, $exit);
+                return $this->Rest->abort($this);
             }
+
+            parent::redirect($url, $status, $exit);
         }
 
     }
