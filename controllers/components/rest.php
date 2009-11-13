@@ -129,7 +129,7 @@ Class RestComponent extends Object {
         return $this->_feedback;
     }
 
-    public function extract($take, $viewVars) {
+    public function extractIns($take, $viewVars) {
         // Collect Vars we want in rest
         $result = array();
         foreach ($take as $path=>$dest) {
@@ -137,7 +137,9 @@ Class RestComponent extends Object {
                 $path = $dest;
             }
 
-            $result[$dest] = Set::extract($path, $viewVars);
+
+            $result = Set::insert($result, $dest, Set::extract($path, $viewVars));
+            //$result[$dest] = ;
         }
         
         return $result;
@@ -152,7 +154,7 @@ Class RestComponent extends Object {
         Configure::write('debug', $this->_settings['debug']);
         $Controller->set('debug', $this->_settings['debug']);
 
-        $result = $this->extract((array)@$this->_settings[$Controller->action]['extract'],
+        $result = $this->extractIns((array)@$this->_settings[$Controller->action]['extract'],
             $Controller->viewVars);
 
         $feedback   = $this->getFeedBack(true);

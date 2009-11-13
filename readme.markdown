@@ -38,10 +38,11 @@ Controller
             'RequestHandler',
             'Rest.Rest' => array(
                 'debug' => 0,
+                'view' => array(
+                    'extract' => array('server.Server' => 'Servers.0'),
+                ),
                 'index' => array(
-                    'extract' => array(
-                        'Servers.{n}.Server' => 'Servers',
-                    ),
+                    'extract' => array('rows.{n}.Server' => 'Servers'),
                 ),
             ),
         );
