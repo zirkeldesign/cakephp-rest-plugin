@@ -39,16 +39,17 @@ Controller
             'Rest.Rest' => array(
                 'debug' => 0,
                 'index' => array(
-                    'restVars' => array(
-                        'rows' => 'servers'
+                    'extract' => array(
+                        'Servers.{n}.Server' => 'Servers',
                     ),
                 ),
             ),
         );
     }
 
-`restVars` makes variables you have in: `$this->viewVars` available in the
-resulting XML or json under the name you specify in the value part
+`extract` extracts variables you have in: `$this->viewVars`
+and makes them available in the resulting XML or json under
+the name you specify in the value part.
 
 Router
 ------

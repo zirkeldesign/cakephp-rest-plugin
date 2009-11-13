@@ -19,7 +19,7 @@ Class RestComponent extends Object {
     );
 
     protected $_active = false;
-    protected $_errors = array();
+    protected $_feedback = array();
 
     protected $_settings = array(
         // Passed as Component options
@@ -31,7 +31,7 @@ Class RestComponent extends Object {
         
         // Passed as Helper options
         'view' => array(
-            'restVars' => array(),
+            'extract' => array(),
         ),
     );
 
@@ -83,7 +83,7 @@ Class RestComponent extends Object {
         if ($this->_settings['viewsFromPlugin']) {
             // Setup the controller so it can use
             // the view inside this plugin
-            $Controller->layout     = 'default';
+            $Controller->layout     = false;
             $Controller->plugin     = 'rest';
             $Controller->viewPath   = 'generic' . DS . $Controller->params['url']['ext'];
         }
@@ -95,33 +95,54 @@ Class RestComponent extends Object {
 
     public function error($format, $arg1 = null, $arg2 = null) {
         $args = func_get_args();
-        if (count($args) > 1) {
-            $format = vsprintf($format, $args);
-        }
-        $this->_errors[] = $format;
+        if (count($args) > 1) $format = vsprintf($format, $args);
+        $this->_feedback[__FUNCTION__][] = $format;
+        return false;
+    }
+    public function info($format, $arg1 = null, $arg2 = null) {
+        $args = func_get_args();
+        if (count($args) > 1) $format = vsprintf($format, $args);
+        $this->_feedback[__FUNCTION__][] = $format;
+        return false;
+    }
+    public function warning($format, $arg1 = null, $arg2 = null) {
+        $args = func_get_args();
+        if (count($args) > 1) $format = vsprintf($format, $args);
+        $this->_feedback[__FUNCTION__][] = $format;
         return false;
     }
 
-    public function getErrors($formatted = false) {
-        if (empty($this->_errors)) {
-            return null;
-        }
-
+    public function getFeedBack($formatted = false) {
         if ($formatted) {
-            $errs = array();
-            foreach ($this->_errors as $i=>$err) {
-                $errs[] = array(
-                    'error' => array(
-                        'str' => $err,
-                    ),
-                );
+            $feedback = array();
+            foreach ($this->_feedback as $level=>$messages) {
+                foreach ($messages as $i=>$message) {
+                    $feedback[] = array(
+                        'message' => $message,
+                        'level' => $level,
+                    );
+                }
             }
-            return $errs;
+            return $feedback;
         }
 
-        return $this->_errors;
+        return $this->_feedback;
     }
-    
+
+    public function extract($take, $viewVars) {
+        // Collect Vars we want in rest
+        $result = array();
+        foreach ($take as $path=>$dest) {
+            if (is_numeric($path)) {
+                $path = $dest;
+            }
+
+            $result[$dest] = Set::extract($path, $viewVars);
+        }
+        
+        return $result;
+    }
+
     public function beforeRender (&$Controller) {
         if (!$this->_active) {
             return;
@@ -131,35 +152,45 @@ Class RestComponent extends Object {
         Configure::write('debug', $this->_settings['debug']);
         $Controller->set('debug', $this->_settings['debug']);
 
-        // Collect Vars we want in rest
-        $result = array();
-        foreach ((array)@$this->_settings[$Controller->action]['restVars'] as $var=>$restVar) {
-            if (is_numeric($var)) {
-                $var = $restVar;
-            }
+        $result = $this->extract((array)@$this->_settings[$Controller->action]['extract'],
+            $Controller->viewVars);
 
-            if (false !== strpos($var, '::')) {
-                list($containerName, $var) = explode('::', $var);
-                $container = &$Controller->viewVars[$containerName];
-            } else {
-                $containerName = 'viewVars';
-                $container = &$Controller->viewVars;
-            }
+        $feedback   = $this->getFeedBack(true);
 
-            if (!isset($container[$var])) {
-                $this->error('var "%s" was not found in %s',
-                        $var, $containerName);
+        $serverKeys = array_flip(array(
+            'HTTP_HOST',
+            'HTTP_USER_AGENT',
+            'REMOTE_ADDR',
+            'REQUEST_METHOD',
+            'REQUEST_TIME',
+            'REQUEST_URI',
+            'SERVER_ADDR',
+            'SERVER_PROTOCOL',
+        ));
+        $server = array_intersect_key($_SERVER, $serverKeys);
+        foreach($server as $k=>$v) {
+            if ($k === ($lc = strtolower($k))) {
+                continue;
             }
-            $result[$restVar] = $container[$var];
+            $server[$lc] = $v;
+            unset($server[$k]);
         }
 
-        $restVars = array();
-        $e = $this->getErrors(true);
-        if ($e) {
-            $restVars['errors'] = $e;
-        }
-        $restVars['results'] = $result;
+        $status = count(@$feedback['error'])
+            ? 'error'
+            : 'ok';
 
+
+        $restVars = array(
+            'Request-meta' => array(
+                'Status' => $status,
+                'Feedback' => $feedback,
+                'Server' => $server,
+            ),
+        );
+        
+        $restVars = am($restVars, $result);
+        
         $Controller->set('restVars', $restVars);
     }
 }
