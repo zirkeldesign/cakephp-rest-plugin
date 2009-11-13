@@ -46,6 +46,35 @@ Controller
                 ),
             ),
         );
+
+        /**
+         * Shortcut so you can check in your Controllers wether
+         * REST Component is currently active.
+         *
+         * Use it in your ->redirect() and ->flash() methods
+         * to forward errors to REST with e.g. $this->Rest->error()
+         *
+         * @return boolean
+         */
+        protected function _isRest() {
+            return is_object($this->Rest) && $this->Rest->isActive();
+        }
+
+        public function redirect($url, $status = null, $exit = true) {
+            if ($this->_isAjax()) {
+                // Ajax stuff can't redirect
+                $flash = $this->Session->read('Message.flash');
+                $this->Session->del('Message.flash');
+                echo json_encode($flash);
+                exit;
+            } elseif ($this->_isRest()) {
+                // Just don't redirect.. Let REST die gracefully
+                $this->Rest->abort($this);
+            } else {
+                parent::redirect($url, $status, $exit);
+            }
+        }
+
     }
 
 `extract` extracts variables you have in: `$this->viewVars`
