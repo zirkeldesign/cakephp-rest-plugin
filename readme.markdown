@@ -57,7 +57,7 @@ Controller
          * @return boolean
          */
         protected function _isRest() {
-            return is_object($this->Rest) && $this->Rest->isActive();
+            return is_object(@$this->Rest) && $this->Rest->isActive();
         }
 
         public function redirect($url, $status = null, $exit = true) {
