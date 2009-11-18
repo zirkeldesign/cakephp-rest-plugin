@@ -63,7 +63,9 @@ Controller
         public function redirect($url, $status = null, $exit = true) {
             if ($this->_isRest()) {
                 // Just don't redirect.. Let REST die gracefully
-                return $this->Rest->abort($this);
+                // Do set the HTTP code though
+                parent::redirect(null, $status, false);
+                $this->Rest->abort(compact('url', 'status', 'exit'));
             }
 
             parent::redirect($url, $status, $exit);

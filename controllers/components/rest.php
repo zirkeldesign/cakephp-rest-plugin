@@ -61,6 +61,11 @@ Class RestComponent extends Object {
         $this->Controller->helpers['Rest.' . $this->_activeHelper] = $this->_settings;
     }
 
+    public function credentials() {
+        
+        prd($this->data);
+    }
+
     public function headers($ext = false) {
         if (!$ext) {
             $ext = $this->Controller->params['url']['ext'];
@@ -214,10 +219,10 @@ Class RestComponent extends Object {
             : 'ok';
 
         $restVars = array(
-            'request' => array(
+            'meta' => array(
                 'status' => $status,
                 'messages' => $feedback,
-                'headers' => $server,
+                'request' => $server,
             ),
         );
 
@@ -229,12 +234,13 @@ Class RestComponent extends Object {
      * Should be called by Controller->redirect to dump
      * an error & stop further execution.
      */
-    public function abort() {
+    public function abort($redirParams = array()) {
         // Automatically fetch Auth Component Errors
         if (is_object($this->Controller->Session) && @$this->Controller->Session->read('Message.auth')) {
             $this->error($this->Controller->Session->read('Message.auth.message'));
+            $this->Controller->header('HTTP/1.1 403 Forbidden');
         }
-        
+
         $this->headers();
         $xml = $this->helper()->serialize($this->restVars());
         
