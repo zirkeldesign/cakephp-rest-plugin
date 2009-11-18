@@ -30,6 +30,7 @@ Class RestComponent extends Object {
         // Passed as Component options
         'extensions' => array('xml', 'json'),
         'viewsFromPlugin' => true,
+        'authKeyword' => 'TRUEREST',
 
         // Passed as Both Helper & Component options
         'debug' => '0',
@@ -62,8 +63,21 @@ Class RestComponent extends Object {
     }
 
     public function credentials() {
+        // Have your client set a header like:
+        // Authorization: TRUEREST username=john&password=xxx&apikey=247b5a2f72df375279573f2746686daa<
+        // http://docs.amazonwebservices.com/AmazonS3/2006-03-01/index.html?RESTAuthentication.html
+
+        if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
+            $parts = explode(' ', $_SERVER['HTTP_AUTHORIZATION']);
+            $match = array_shift($parts);
+            if ($match === $this->_settings['authKeyword']) {
+                $str = join(' ', $parts);
+                parse_str($str, $credentials);
+                return $credentials;
+            }
+        }
         
-        prd($this->data);
+        return false;
     }
 
     public function headers($ext = false) {
@@ -155,7 +169,7 @@ Class RestComponent extends Object {
         foreach ($this->_feedback as $level=>$messages) {
             foreach ($messages as $i=>$message) {
                 $feedback[] = array(
-                    'text' => $message,
+                    'message' => $message,
                     'level' => $level,
                 );
             }
@@ -221,12 +235,12 @@ Class RestComponent extends Object {
         $restVars = array(
             'meta' => array(
                 'status' => $status,
-                'messages' => $feedback,
+                'feedback' => $feedback,
                 'request' => $server,
             ),
+            'data' => $result,
         );
-
-        $restVars = am($restVars, $result);
+        
         return $restVars;
     }
 
@@ -234,13 +248,28 @@ Class RestComponent extends Object {
      * Should be called by Controller->redirect to dump
      * an error & stop further execution.
      */
-    public function abort($redirParams = array()) {
-        // Automatically fetch Auth Component Errors
+    public function abort($params = array()) {
+        $code  = '200';
+        $error = '';
+
         if (is_object($this->Controller->Session) && @$this->Controller->Session->read('Message.auth')) {
-            $this->error($this->Controller->Session->read('Message.auth.message'));
-            $this->Controller->header('HTTP/1.1 403 Forbidden');
+            // Automatically fetch Auth Component Errors
+            $code  = '403';
+            $error = $this->Controller->Session->read('Message.auth.message');
         }
 
+        if (!empty($params['status'])) {
+            $code = $params['status'];
+        }
+        if (!empty($params['status'])) {
+            $error = $params['error'];
+        }
+        
+        if ($error) {
+            $this->error($error);
+        }
+        $this->Controller->header(sprintf('HTTP/1.1 %s %s', $code, $this->codes[$code]));
+        
         $this->headers();
         $xml = $this->helper()->serialize($this->restVars());
         
