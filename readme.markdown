@@ -77,6 +77,16 @@ Controller
 and makes them available in the resulting XML or json under
 the name you specify in the value part.
 
+Authorization
+-------------
+Check the HTTP header as shown here: http://docs.amazonwebservices.com/AmazonS3/2006-03-01/index.html?RESTAuthentication.html
+You can control the `authKeyword` setting to control what keyword belongs to
+your REST API. By default it uses: TRUEREST. Have your users supply a header like:
+`Authorization: TRUEREST username=john&password=xxx&apikey=247b5a2f72df375279573f2746686daa`
+
+Now, inside your controller these variables will be available by calling
+`$this->Rest->credentials()`. So login anyone with e.g. `$this->Auth->login()`;
+
 Router
 ------
     // Add an element for each controller that you want to open up
