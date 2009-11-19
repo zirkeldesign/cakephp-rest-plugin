@@ -140,7 +140,6 @@ Class RestComponent extends Object {
         }
     }
 
-
     public function error($format, $arg1 = null, $arg2 = null) {
         $args = func_get_args();
         if (count($args) > 1) $format = vsprintf($format, $args);
@@ -179,7 +178,7 @@ Class RestComponent extends Object {
     }
 
     /**
-     * Takes injects vars into restVars according to Xpaths in $take
+     * Reformats data according to Xpaths in $take
      *
      * @param array $take
      * @param array $viewVars
@@ -187,26 +186,26 @@ Class RestComponent extends Object {
      * @return array
      */
     public function inject($take, $viewVars) {
-        $result = array();
+        $data = array();
         foreach ($take as $path=>$dest) {
             if (is_numeric($path)) {
                 $path = $dest;
             }
 
-            $result = Set::insert($result, $dest, Set::extract($path, $viewVars));
+            $data = Set::insert($data, $dest, Set::extract($path, $viewVars));
         }
         
-        return $result;
+        return $data;
     }
 
     /**
      * Get an array of everything that needs to go into the Xml / Json
      *
-     * @param array $result optional. Data collected by cake
+     * @param array $data optional. Data collected by cake
      * 
      * @return array
      */
-    public function restVars($result = array()) {
+    public function response($data = array()) {
         $feedback   = $this->getFeedBack(true);
 
         $serverKeys = array_flip(array(
@@ -232,16 +231,16 @@ Class RestComponent extends Object {
             ? 'error'
             : 'ok';
 
-        $restVars = array(
+        $response = array(
             'meta' => array(
                 'status' => $status,
                 'feedback' => $feedback,
                 'request' => $server,
             ),
-            'data' => $result,
+            'data' => $data,
         );
         
-        return $restVars;
+        return $response;
     }
 
     /**
@@ -271,20 +270,28 @@ Class RestComponent extends Object {
         $this->Controller->header(sprintf('HTTP/1.1 %s %s', $code, $this->codes[$code]));
         
         $this->headers();
-        $xml = $this->helper()->serialize($this->restVars());
+        $xml = $this->helper()->serialize($this->response());
         
         // Die.. ugly. but very safe. which is what we need
         // or all Auth & Acl work could be circumvented
         die($xml);
     }
 
+    /**
+     * Collects viewVars, reformats, and makes them available as viewVar: response
+     * for use in REST serialization
+     *
+     * @param <type> $Controller
+     * 
+     * @return <type>
+     */
     public function beforeRender (&$Controller) {
         if (!$this->_active) return;
         
-        $result = $this->inject((array)@$this->_settings[$this->Controller->action]['extract'],
+        $data = $this->inject((array)@$this->_settings[$this->Controller->action]['extract'],
             $this->Controller->viewVars);
         
-        $this->Controller->set('restVars', $this->restVars($result));
+        $this->Controller->set('response', $this->response($data));
     }
 }
 ?>

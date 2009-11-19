@@ -3,5 +3,5 @@ if ($debug > 1) {
     echo '<xmp>';
 }
 
-echo $restJson->serialize($restVars);
+echo $restJson->serialize($response);
 ?>
