@@ -21,8 +21,8 @@ Class RestComponent extends Object {
     public $Controller;
     public $RestXml;
     public $RestJson;
-
-    protected $_active = false;
+    public $postData;
+    
     protected $_activeHelper = false;
     protected $_feedback = array();
 
@@ -41,25 +41,40 @@ Class RestComponent extends Object {
         ),
     );
 
+    protected function _modelizePost(&$data) {
+        if (!is_array($data)) {
+            return $data;
+        }
+        if (Set::countDim($data) !== 1) {
+            return $this->abort('You may only send 1 dimensional posts');
+        }
+        
+        $data = array(
+            $this->Controller->modelClass => $data,
+        );
+
+        return $data;
+    }
+
     public function initialize (&$Controller, $settings = array()) {
         $this->Controller = $Controller;
-        $this->_settings = am($this->_settings, $settings);
-
+        $this->_settings  = am($this->_settings, $settings);
+        $this->postData   = $this->_modelizePost($this->Controller->data);
+        
         // Make it an integer always
         $this->_settings['debug'] = (int)$this->_settings['debug'];
         Configure::write('debug', $this->_settings['debug']);
         $this->Controller->set('debug', $this->_settings['debug']);
 
-        $this->_active = in_array($this->Controller->params['url']['ext'], $this->_settings['extensions']);
-
-        if (!$this->_active) {
+        if (!$this->isActive()) {
             return;
         }
         
         $this->headers();
 
         // Attach Rest Helper to controller
-        $this->Controller->helpers['Rest.' . $this->_activeHelper] = $this->_settings;
+        $this->Controller->helpers['Rest.' . $this->_activeHelper] =
+            $this->_settings;
     }
 
     public function credentials() {
@@ -107,14 +122,19 @@ Class RestComponent extends Object {
                 $this->_activeHelper = 'RestXml';
                 break;
             default:
-                trigger_error(sprintf('Unsupported extension: "%s"',
+                return $this->abort(sprintf('Unsupported extension: "%s"',
                         $this->Controller->params['url']['ext']), E_USER_ERROR);
                 break;
         }
     }
 
     public function isActive() {
-        return $this->_active;
+        static $isActive;
+        if (!isset($isActive)) {
+            $isActive = in_array($this->Controller->params['url']['ext'],
+                $this->_settings['extensions']);
+        }
+        return $isActive;
     }
 
     public function helper() {
@@ -128,7 +148,8 @@ Class RestComponent extends Object {
     }
 
     public function startup (&$Controller) {
-        if (!$this->_active) {
+
+        if (!$this->isActive()) {
             return;
         }
         if ($this->_settings['viewsFromPlugin']) {
@@ -226,8 +247,12 @@ Class RestComponent extends Object {
             $server[$lc] = $v;
             unset($server[$k]);
         }
-        prd($_SERVER);
-        
+
+        // In case of edit, return what post data was received
+        if (empty($data) && !empty($this->postData)) {
+            $data = $this->postData;
+        }
+
         $status = count(@$this->_feedback['error'])
             ? 'error'
             : 'ok';
@@ -249,22 +274,26 @@ Class RestComponent extends Object {
      * an error & stop further execution.
      */
     public function abort($params = array()) {
-        $code  = '200';
-        $error = '';
-
-        if (is_object($this->Controller->Session) && @$this->Controller->Session->read('Message.auth')) {
-            // Automatically fetch Auth Component Errors
+        if (is_string($params)) {
             $code  = '403';
-            $error = $this->Controller->Session->read('Message.auth.message');
-        }
+            $error = $params;
+        } else {
+            $code  = '200';
+            $error = '';
 
-        if (!empty($params['status'])) {
-            $code = $params['status'];
+            if (is_object($this->Controller->Session) && @$this->Controller->Session->read('Message.auth')) {
+                // Automatically fetch Auth Component Errors
+                $code  = '403';
+                $error = $this->Controller->Session->read('Message.auth.message');
+            }
+
+            if (!empty($params['status'])) {
+                $code = $params['status'];
+            }
+            if (!empty($params['status'])) {
+                $error = $params['error'];
+            }
         }
-        if (!empty($params['status'])) {
-            $error = $params['error'];
-        }
-        
         if ($error) {
             $this->error($error);
         }
@@ -287,7 +316,7 @@ Class RestComponent extends Object {
      * @return <type>
      */
     public function beforeRender (&$Controller) {
-        if (!$this->_active) return;
+        if (!$this->isActive()) return;
         
         $data = $this->inject((array)@$this->_settings[$this->Controller->action]['extract'],
             $this->Controller->viewVars);
