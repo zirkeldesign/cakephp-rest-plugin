@@ -226,6 +226,7 @@ Class RestComponent extends Object {
             $server[$lc] = $v;
             unset($server[$k]);
         }
+        prd($_SERVER);
         
         $status = count(@$this->_feedback['error'])
             ? 'error'
