@@ -1,5 +1,5 @@
 <?php
-if ($debug > 1) {
+if (@$debug > 1) {
     echo '<xmp>';
 }
 
