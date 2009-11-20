@@ -59,13 +59,15 @@ Class RestComponent extends Object {
     public function initialize (&$Controller, $settings = array()) {
         $this->Controller = $Controller;
         $this->_settings  = am($this->_settings, $settings);
-        $this->postData   = $this->_modelizePost($this->Controller->data);
-        
-        // Make it an integer always
+
+        // Control Debug First
         $this->_settings['debug'] = (int)$this->_settings['debug'];
         Configure::write('debug', $this->_settings['debug']);
         $this->Controller->set('debug', $this->_settings['debug']);
 
+        // Validate & Modify Post
+        $this->postData   = $this->_modelizePost($this->Controller->data);
+        
         if (!$this->isActive()) {
             return;
         }
@@ -320,8 +322,10 @@ Class RestComponent extends Object {
         
         $data = $this->inject((array)@$this->_settings[$this->Controller->action]['extract'],
             $this->Controller->viewVars);
+
+        $response = $this->response($data);
         
-        $this->Controller->set('response', $this->response($data));
+        $this->Controller->set(compact('response'));
     }
 }
 ?>
