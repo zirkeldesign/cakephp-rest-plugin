@@ -41,14 +41,42 @@ Class RestComponent extends Object {
         ),
     );
 
+    public function numeric($array = array()) {
+        if (empty($array)) {
+            return null;
+        }
+        $keys = array_keys($array);
+        foreach($keys as $key) {
+            if (!is_numeric($key)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     *
+     *
+     * @param <type> $data
+     * @return <type>
+     */
     protected function _modelizePost(&$data) {
         if (!is_array($data)) {
             return $data;
         }
-        if (Set::countDim($data) !== 1) {
-            return $this->abort('You may only send 1 dimensional posts');
-        }
         
+        // Protected against Saving multiple models in one post
+        // while still allowing mass-updates in the form of:
+        // $this->data[1][field] = value;
+        if (Set::countDim($data) === 2) {
+            if (!$this->numeric($data)) {
+                return $this->error('2 dimensional can only begin with numeric index');
+            }
+        } else if (Set::countDim($data) !== 1) {
+            return $this->error('You may only send 1 dimensional posts');
+        }
+
+        // Encapsulate in Controller Model
         $data = array(
             $this->Controller->modelClass => $data,
         );
@@ -67,6 +95,9 @@ Class RestComponent extends Object {
 
         // Validate & Modify Post
         $this->postData   = $this->_modelizePost($this->Controller->data);
+        if ($this->postData === false) {
+            return $this->abort('Invalid post data');
+        }
         
         if (!$this->isActive()) {
             return;
@@ -173,7 +204,7 @@ Class RestComponent extends Object {
         $args = func_get_args();
         if (count($args) > 1) $format = vsprintf($format, $args);
         $this->_feedback[__FUNCTION__][] = $format;
-        return false;
+        return true;
     }
     public function warning($format, $arg1 = null, $arg2 = null) {
         $args = func_get_args();
