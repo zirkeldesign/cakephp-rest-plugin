@@ -128,6 +128,16 @@ Class RestComponent extends Object {
         return false;
     }
 
+    public function controllers() {
+        $controllers = Configure::listObjects('controller', null, false);
+        
+        foreach ($controllers as $controller) {
+            $Controller = ClassRegistry::init($controller, 'Controller');
+            prd($Controller->components);
+        }
+
+    }
+
     public function headers($ext = false) {
         if (!$ext) {
             $ext = $this->Controller->params['url']['ext'];
@@ -181,7 +191,6 @@ Class RestComponent extends Object {
     }
 
     public function startup (&$Controller) {
-
         if (!$this->isActive()) {
             return;
         }
