@@ -27,12 +27,13 @@ Class RestComponent extends Object {
     protected $_feedback = array();
 
     protected $_settings = array(
-        // Passed as Component options
+        // Component options
         'extensions' => array('xml', 'json'),
         'viewsFromPlugin' => true,
         'authKeyword' => 'TRUEREST',
+        'requireSecure' => false,
 
-        // Passed as Both Helper & Component options
+        // Both Helper & Component options
         'debug' => '0',
         
         // Passed as Helper options
@@ -102,6 +103,14 @@ Class RestComponent extends Object {
         if (!$this->isActive()) {
             return;
         }
+
+        if (false !== $this->_settings['requireSecure']) {
+            if (!isset($this->Controller->Security)
+                || !is_object($this->Controller->Security)) {
+                return $this->abort('You need to enable the Security component first');
+            }
+            $this->Controller->Security->requireSecure($this->_settings['requireSecure']);
+        }
         
         $this->headers();
 
@@ -135,7 +144,7 @@ Class RestComponent extends Object {
             $Controller = ClassRegistry::init($controller, 'Controller');
             prd($Controller->components);
         }
-
+        
     }
 
     public function headers($ext = false) {
