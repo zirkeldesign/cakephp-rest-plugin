@@ -25,12 +25,17 @@ Class RestComponent extends Object {
     
     protected $_activeHelper = false;
     protected $_feedback = array();
+    protected $_blackListControllers = array(
+        'App',
+        'Defaults',
+    );
 
     protected $_settings = array(
         // Component options
         'extensions' => array('xml', 'json'),
         'viewsFromPlugin' => true,
         'authKeyword' => 'TRUEREST',
+        'showControllers' => true,
         'requireSecure' => false,
 
         // Both Helper & Component options
@@ -137,14 +142,58 @@ Class RestComponent extends Object {
         return false;
     }
 
-    public function controllers() {
-        $controllers = Configure::listObjects('controller', null, false);
-        
-        foreach ($controllers as $controller) {
-            $Controller = ClassRegistry::init($controller, 'Controller');
-            prd($Controller->components);
+    /**
+     * Get a list of Controllers where Rest component has been activated
+     * uses Cache::read & Cache::write by default to tackle performance
+     * issues.
+     *
+     * @param boolean $cached
+     *
+     * @return array
+     */
+    public function controllers($cached = true) {
+        $ckey = sprintf('%s.%s', __CLASS__, __FUNCTION__);
+
+        if (!$cached || !($restControllers = Cache::read($ckey))) {
+            $restControllers = array();
+            
+            if (method_exists('App', 'objects')) {
+                // As of cake 1.3, use App::objects instead of Configure::listObjects
+                // http://code.cakephp.org/wiki/1.3/migration-guide
+                $controllers = App::objects('controller', null, false);
+            } else {
+                $controllers = Configure::listObjects('controller', null, false);
+            }
+
+            // Unlist some controllers by default
+            foreach ($this->_blackListControllers as $blackListController) {
+                if (false !== ($key = array_search($blackListController, $controllers))) {
+                    unset($controllers[$key]);
+                }
+            }
+
+            // Instantiate all remaining controllers and check components
+            foreach ($controllers as $controller) {
+                $className = $controller.'Controller';
+                if (!App::import('Controller', $controller)) {
+                    continue;
+                }
+                $Controller = new $className();
+
+                if (isset($Controller->components['Rest.Rest'])
+                    || in_array('Rest.Rest', $Controller->components)) {
+
+                    $restControllers[] = $controller;
+                }
+                unset($Controller);
+            }
+
+            if ($cached) {
+                Cache::write($ckey, $restControllers);
+            }
         }
         
+        return $restControllers;
     }
 
     public function headers($ext = false) {
@@ -316,6 +365,11 @@ Class RestComponent extends Object {
             ),
             'data' => $data,
         );
+
+        // showControllers
+        if ($this->_settings['showControllers']) {
+            $response['meta']['controllers'] = $this->controllers();
+        }
         
         return $response;
     }
@@ -324,7 +378,7 @@ Class RestComponent extends Object {
      * Should be called by Controller->redirect to dump
      * an error & stop further execution.
      */
-    public function abort($params = array()) {
+    public function abort($params = array(), $data = array()) {
         if (is_string($params)) {
             $code  = '403';
             $error = $params;
@@ -351,7 +405,7 @@ Class RestComponent extends Object {
         $this->Controller->header(sprintf('HTTP/1.1 %s %s', $code, $this->codes[$code]));
         
         $this->headers();
-        $xml = $this->helper()->serialize($this->response());
+        $xml = $this->helper()->serialize($this->response($data));
         
         // Die.. ugly. but very safe. which is what we need
         // or all Auth & Acl work could be circumvented
