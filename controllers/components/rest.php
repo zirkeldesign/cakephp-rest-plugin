@@ -28,15 +28,15 @@ Class RestComponent extends Object {
     protected $_activeHelper = false;
     protected $_feedback = array();
     protected $_credentials = array();
-    protected $_blackListControllers = array(
-        'App',
-        'Defaults',
-    );
-
+    
     protected $_settings = array(
         // Component options
         'extensions' => array('xml', 'json'),
         'viewsFromPlugin' => true,
+        'skipControllers' => array(
+            'App',
+            'Defaults',
+        ),
         'auth' => array(
             'requireSecure' => false,
             'keyword' => 'TRUEREST',
@@ -67,48 +67,6 @@ Class RestComponent extends Object {
         ),
     );
 
-    public function numeric($array = array()) {
-        if (empty($array)) {
-            return null;
-        }
-        $keys = array_keys($array);
-        foreach($keys as $key) {
-            if (!is_numeric($key)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
-     *
-     *
-     * @param <type> $data
-     * @return <type>
-     */
-    protected function _modelizePost(&$data) {
-        if (!is_array($data)) {
-            return $data;
-        }
-        
-        // Protected against Saving multiple models in one post
-        // while still allowing mass-updates in the form of:
-        // $this->data[1][field] = value;
-        if (Set::countDim($data) === 2) {
-            if (!$this->numeric($data)) {
-                return $this->error('2 dimensional can only begin with numeric index');
-            }
-        } else if (Set::countDim($data) !== 1) {
-            return $this->error('You may only send 1 dimensional posts');
-        }
-
-        // Encapsulate in Controller Model
-        $data = array(
-            $this->Controller->modelClass => $data,
-        );
-
-        return $data;
-    }
 
     public function initialize (&$Controller, $settings = array()) {
         $this->Controller = $Controller;
@@ -130,7 +88,7 @@ Class RestComponent extends Object {
         $this->log(array(
             'controller' => $this->Controller->name,
             'action' => $this->Controller->action,
-            'model_id' => @$this->Controller->passedArgs[0] 
+            'model_id' => @$this->Controller->passedArgs[0]
                 ? $this->Controller->passedArgs[0]
                 : 0,
             'ratelimited' => 0,
@@ -138,7 +96,7 @@ Class RestComponent extends Object {
             'ip' => $_SERVER['REMOTE_ADDR'],
             'httpcode' => 200,
         ));
-        
+
         // Rate Limit
         $class = $this->credentials('class');
         list ($time, $max) = $this->_settings['ratelimit']['classlimits'][$class];
@@ -170,6 +128,107 @@ Class RestComponent extends Object {
         // Attach Rest Helper to controller
         $this->Controller->helpers['Rest.' . $this->_activeHelper] =
             $this->_settings;
+    }
+
+    /**
+     * Write a logentry
+     *
+     * @param <type> $controller
+     */
+    public function shutdown(&$controller) {
+        $this->log(array(
+            'responded' => date('Y-m-d H:i:s'),
+        ));
+
+        $this->log(true);
+    }
+
+    /**
+     * Controls layout & view files
+     *
+     * @param <type> $Controller
+     * @return <type>
+     */
+    public function startup (&$Controller) {
+        if (!$this->isActive()) {
+            return;
+        }
+        if ($this->_settings['viewsFromPlugin']) {
+            // Setup the controller so it can use
+            // the view inside this plugin
+            $this->Controller->layout   = false;
+            $this->Controller->plugin   = 'rest';
+            $this->Controller->viewPath = 'generic' . DS . $this->Controller->params['url']['ext'];
+        }
+    }
+
+    /**
+     * Collects viewVars, reformats, and makes them available as
+     * viewVar: response for use in REST serialization
+     *
+     * @param <type> $Controller
+     *
+     * @return <type>
+     */
+    public function beforeRender (&$Controller) {
+        if (!$this->isActive()) return;
+
+        $data = $this->inject((array)@$this->_settings[$this->Controller->action]['extract'],
+            $this->Controller->viewVars);
+
+        $response = $this->response($data);
+
+        $this->Controller->set(compact('response'));
+    }
+
+    /**
+     * Determines is an array is numerically indexed
+     *
+     * @param array $array
+     *
+     * @return boolean
+     */
+    public function numeric($array = array()) {
+        if (empty($array)) {
+            return null;
+        }
+        $keys = array_keys($array);
+        foreach($keys as $key) {
+            if (!is_numeric($key)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Prepares REST data for cake interaction
+     *
+     * @param <type> $data
+     * @return <type>
+     */
+    protected function _modelizePost(&$data) {
+        if (!is_array($data)) {
+            return $data;
+        }
+        
+        // Protected against Saving multiple models in one post
+        // while still allowing mass-updates in the form of:
+        // $this->data[1][field] = value;
+        if (Set::countDim($data) === 2) {
+            if (!$this->numeric($data)) {
+                return $this->error('2 dimensional can only begin with numeric index');
+            }
+        } else if (Set::countDim($data) !== 1) {
+            return $this->error('You may only send 1 dimensional posts');
+        }
+
+        // Encapsulate in Controller Model
+        $data = array(
+            $this->Controller->modelClass => $data,
+        );
+
+        return $data;
     }
 
     /**
@@ -223,6 +282,16 @@ Class RestComponent extends Object {
         return $this->_RestLog; 
     }
 
+    /**
+     * log(true) writes log to disk. otherwise stores key-value
+     * pairs in memory for later saving. Can also work recursively
+     * by giving an array as the key
+     *
+     * @param mixed $key
+     * @param mixed $val
+     *
+     * @return boolean
+     */
     public function log($key, $val = null) {
         // Write log
         if ($key === true && func_num_args() === 1) {
@@ -332,8 +401,8 @@ Class RestComponent extends Object {
             }
 
             // Unlist some controllers by default
-            foreach ($this->_blackListControllers as $blackListController) {
-                if (false !== ($key = array_search($blackListController, $controllers))) {
+            foreach ($this->_settings['skipControllers'] as $skipController) {
+                if (false !== ($key = array_search($skipController, $controllers))) {
                     unset($controllers[$key]);
                 }
             }
@@ -366,6 +435,13 @@ Class RestComponent extends Object {
         return $restControllers;
     }
 
+    /**
+     * Set content-type headers based on extension
+     *
+     * @param <type> $ext
+     * 
+     * @return <type>
+     */
     public function headers($ext = false) {
         if (!$ext) {
             $ext = $this->Controller->params['url']['ext'];
@@ -408,6 +484,11 @@ Class RestComponent extends Object {
         return $isActive;
     }
 
+    /**
+     * Access to the active XML/Json Helper
+     *
+     * @return <type>
+     */
     public function helper() {
         if (!is_object($this->{$this->_activeHelper})) {
             App::import('Helper', 'Rest.'. $this->_activeHelper);
@@ -416,19 +497,6 @@ Class RestComponent extends Object {
         }
     
         return $this->{$this->_activeHelper};
-    }
-
-    public function startup (&$Controller) {
-        if (!$this->isActive()) {
-            return;
-        }
-        if ($this->_settings['viewsFromPlugin']) {
-            // Setup the controller so it can use
-            // the view inside this plugin
-            $this->Controller->layout   = false;
-            $this->Controller->plugin   = 'rest';
-            $this->Controller->viewPath = 'generic' . DS . $this->Controller->params['url']['ext'];
-        }
     }
 
     public function error($format, $arg1 = null, $arg2 = null) {
@@ -450,6 +518,13 @@ Class RestComponent extends Object {
         return false;
     }
 
+    /**
+     * Returns (optionally) formatted feedback.
+     *
+     * @param boolean $format
+     * 
+     * @return array
+     */
     public function getFeedBack($format = false) {
         if (!$format) {
             return $this->_feedback;
@@ -532,9 +607,14 @@ Class RestComponent extends Object {
                 'status' => $status,
                 'feedback' => $feedback,
                 'request' => $server,
+                'credentials' => array(),
             ),
             'data' => $data,
         );
+
+        foreach($this->_settings['auth']['fields'] as $field) {
+            $response['meta']['credentials'][$field] = $this->credentials($field);
+        }
 
         if (@$this->_settings['log']['dump']) {
             $this->log(array(
@@ -590,32 +670,5 @@ Class RestComponent extends Object {
         die($xml);
     }
 
-
-    public function shutdown(&$controller) {
-        $this->log(array(
-            'responded' => date('Y-m-d H:i:s'),
-        ));
-        
-        $this->log(true);
-    }
-
-    /**
-     * Collects viewVars, reformats, and makes them available as viewVar: response
-     * for use in REST serialization
-     *
-     * @param <type> $Controller
-     * 
-     * @return <type>
-     */
-    public function beforeRender (&$Controller) {
-        if (!$this->isActive()) return;
-        
-        $data = $this->inject((array)@$this->_settings[$this->Controller->action]['extract'],
-            $this->Controller->viewVars);
-
-        $response = $this->response($data);
-        
-        $this->Controller->set(compact('response'));
-    }
 }
 ?>
