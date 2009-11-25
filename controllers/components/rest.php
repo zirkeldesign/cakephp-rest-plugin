@@ -23,8 +23,10 @@ Class RestComponent extends Object {
     public $RestJson;
     public $postData;
     
+    protected $_logData = array();
     protected $_activeHelper = false;
     protected $_feedback = array();
+    protected $_credentials = array();
     protected $_blackListControllers = array(
         'App',
         'Defaults',
@@ -34,11 +36,20 @@ Class RestComponent extends Object {
         // Component options
         'extensions' => array('xml', 'json'),
         'viewsFromPlugin' => true,
-        'authKeyword' => 'TRUEREST',
+        'authvar.keyword' => 'TRUEREST',
+        'authvar.username' => 'username',
+        'authvar.password' => 'password',
+        'authvar.class' => 'class',
+        'authvar.apikey' => 'apikey',
         'requireSecure' => false,
+        'log' => array(
+            'model' => 'Rest.RestLog',
+            'dump' => true,
+        ),
+        'rateLimit' => 2,
 
         // Both Helper & Component options
-        'debug' => '0',
+        'debug' => 0,
         
         // Passed as Helper options
         'view' => array(
@@ -98,14 +109,27 @@ Class RestComponent extends Object {
         Configure::write('debug', $this->_settings['debug']);
         $this->Controller->set('debug', $this->_settings['debug']);
 
-        // Validate & Modify Post
-        $this->postData   = $this->_modelizePost($this->Controller->data);
-        if ($this->postData === false) {
-            return $this->abort('Invalid post data');
-        }
-        
         if (!$this->isActive()) {
             return;
+        }
+
+        $this->credentials(true);
+        
+        $this->log(array(
+            'controller' => $this->Controller->name,
+            'action' => $this->Controller->action,
+            'model_id' => @$this->Controller->passedArgs[0] 
+                ? $this->Controller->passedArgs[0]
+                : 0,
+            'requested' => date('Y-m-d H:i:s'),
+            'remote_addr' => $_SERVER['REMOTE_ADDR'],
+            'status' => 200,
+        ));
+        
+        // Validate & Modify Post
+        $this->postData = $this->_modelizePost($this->Controller->data);
+        if ($this->postData === false) {
+            return $this->abort('Invalid post data');
         }
 
         if (false !== $this->_settings['requireSecure']) {
@@ -124,22 +148,57 @@ Class RestComponent extends Object {
             $this->_settings;
     }
 
-    public function credentials() {
+    public function log($key, $val = null) {
+        if ($key === true && func_num_args() === 1) {
+            // Write log
+            if (@$this->_settings['log']['model']) {
+                $this->RestLog = ClassRegistry::init($this->_settings['log']['model']);
+                $this->RestLog->create();
+                return $this->RestLog->save($this->_logData);
+            }
+
+            return true;
+        }
+
+        // Multiple values: recurse
+        if (is_array($key)) {
+            foreach($key as $k=>$v) {
+                $this->log($k, $v);
+            }
+            return true;
+        }
+
+        // Single value, save
+        $this->_logData[$key] = $val;
+        return true;
+    }
+
+    public function credentials($set = false) {
         // Have your client set a header like:
         // Authorization: TRUEREST username=john&password=xxx&apikey=247b5a2f72df375279573f2746686daa<
         // http://docs.amazonwebservices.com/AmazonS3/2006-03-01/index.html?RESTAuthentication.html
 
+        if (!$set) {
+            return $this->_credentials;
+        }
+        
         if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
             $parts = explode(' ', $_SERVER['HTTP_AUTHORIZATION']);
             $match = array_shift($parts);
-            if ($match === $this->_settings['authKeyword']) {
-                $str = join(' ', $parts);
-                parse_str($str, $credentials);
-                return $credentials;
+            if ($match !== $this->_settings['authvar.keyword']) {
+                return false;
             }
+            $str = join(' ', $parts);
+            parse_str($str, $this->_credentials);
         }
-        
-        return false;
+
+        $this->log(array(
+            'username' => $this->_credentials[$this->_settings['authvar.username']],
+            'apikey' => $this->_credentials[$this->_settings['authvar.apikey']],
+            'class' => $this->_credentials[$this->_settings['authvar.class']],
+        ));
+
+        return $this->_credentials;
     }
 
     /**
@@ -370,6 +429,14 @@ Class RestComponent extends Object {
             'data' => $data,
         );
 
+        if (@$this->_settings['log']['dump']) {
+            $this->log(array(
+                'meta' => json_encode($response['meta']),
+                'data_in' => json_encode($this->postData),
+                'data_out' => json_encode($response['data']),
+            ));
+        }
+
         return $response;
     }
 
@@ -408,7 +475,21 @@ Class RestComponent extends Object {
         
         // Die.. ugly. but very safe. which is what we need
         // or all Auth & Acl work could be circumvented
+        $this->log(array(
+            'status' => $status,
+            'error' => $error,
+        ));
+        $this->shutdown($this->Controller);
         die($xml);
+    }
+
+
+    public function shutdown(&$controller) {
+        $this->log(array(
+            'responded' => date('Y-m-d H:i:s'),
+        ));
+        
+        $this->log(true);
     }
 
     /**
