@@ -1,4 +1,5 @@
 <?php
-class RestLog extends RestAppModel{
+class RestLog extends RestAppModel {
+
 }
 ?>
