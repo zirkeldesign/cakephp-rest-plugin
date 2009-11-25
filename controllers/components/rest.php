@@ -22,7 +22,8 @@ Class RestComponent extends Object {
     public $RestXml;
     public $RestJson;
     public $postData;
-    
+
+    protected $_RestLog;
     protected $_logData = array();
     protected $_activeHelper = false;
     protected $_feedback = array();
@@ -36,17 +37,26 @@ Class RestComponent extends Object {
         // Component options
         'extensions' => array('xml', 'json'),
         'viewsFromPlugin' => true,
-        'authvar.keyword' => 'TRUEREST',
-        'authvar.username' => 'username',
-        'authvar.password' => 'password',
-        'authvar.class' => 'class',
-        'authvar.apikey' => 'apikey',
-        'requireSecure' => false,
+        'auth' => array(
+            'requireSecure' => false,
+            'keyword' => 'TRUEREST',
+            'fields' => array(
+                'class' => 'class',
+                'apikey' => 'apikey',
+                'username' => 'username',
+            ),
+        ),
         'log' => array(
             'model' => 'Rest.RestLog',
             'dump' => true,
         ),
-        'rateLimit' => 2,
+        'ratelimit' => array(
+            'classlimits' => array(
+                'Employee' => array('-1 hour', 1000),
+                'Customer' => array('-1 hour', 100),
+            ),
+            'identfield' => 'apikey',
+        ),
 
         // Both Helper & Component options
         'debug' => 0,
@@ -113,34 +123,48 @@ Class RestComponent extends Object {
             return;
         }
 
+        // Set credentials
         $this->credentials(true);
-        
+
+        // Prepare log
         $this->log(array(
             'controller' => $this->Controller->name,
             'action' => $this->Controller->action,
             'model_id' => @$this->Controller->passedArgs[0] 
                 ? $this->Controller->passedArgs[0]
                 : 0,
+            'ratelimited' => 0,
             'requested' => date('Y-m-d H:i:s'),
-            'remote_addr' => $_SERVER['REMOTE_ADDR'],
-            'status' => 200,
+            'ip' => $_SERVER['REMOTE_ADDR'],
+            'httpcode' => 200,
         ));
         
+        // Rate Limit
+        $class = $this->credentials('class');
+        list ($time, $max) = $this->_settings['ratelimit']['classlimits'][$class];
+        if (!$this->ratelimit($time, $max)) {
+            $msg = sprintf('You have reached your ratelimit (> %s requests in %s)',
+                $max, str_replace('-', '', $time));
+            $this->log('ratelimited', 1);
+            return $this->abort($msg);
+        }
+
         // Validate & Modify Post
         $this->postData = $this->_modelizePost($this->Controller->data);
         if ($this->postData === false) {
             return $this->abort('Invalid post data');
         }
 
-        if (false !== $this->_settings['requireSecure']) {
-            var_dump($this->_settings['requireSecure']);
+        // SSL
+        if (!empty($this->_settings['auth']['requireSecure'])) {
             if (!isset($this->Controller->Security)
                 || !is_object($this->Controller->Security)) {
                 return $this->abort('You need to enable the Security component first');
             }
-            $this->Controller->Security->requireSecure($this->_settings['requireSecure']);
+            $this->Controller->Security->requireSecure($this->_settings['auth']['requireSecure']);
         }
-        
+
+        // Set content-headers
         $this->headers();
 
         // Attach Rest Helper to controller
@@ -148,16 +172,66 @@ Class RestComponent extends Object {
             $this->_settings;
     }
 
-    public function log($key, $val = null) {
-        if ($key === true && func_num_args() === 1) {
-            // Write log
-            if (@$this->_settings['log']['model']) {
-                $this->RestLog = ClassRegistry::init($this->_settings['log']['model']);
-                $this->RestLog->create();
-                return $this->RestLog->save($this->_logData);
-            }
-
+    /**
+     * Works together with Logging to ratelimit incomming requests by
+     * identfield
+     *
+     * @return <type>
+     */
+    public function ratelimit($time, $max) {
+        // No rate limit active
+        if (empty($this->_settings['ratelimit'])) {
             return true;
+        }
+
+        // Need logging
+        if (empty($this->_settings['log']['model'])) {
+            return $this->abort('Logging is required for any ratelimiting '.
+                'to work');
+        }
+
+        // Need identfield
+        if (empty($this->_settings['ratelimit']['identfield'])) {
+            return $this->abort('Need a identfield or I will not know what to '.
+                'ratelimit on');
+        }
+        
+        $logs = $this->RestLog()->find('list', array(
+            'fields' => array('id', $this->_settings['ratelimit']['identfield']),
+            'conditions' => array(
+                'requested >' => date('Y-m-d H:i:s', strtotime($time)),
+            ),
+        ));
+
+        if (count($logs) >= $max) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Return an instance of the log model
+     *
+     * @return object
+     */
+    public function RestLog() {
+        if (!$this->_RestLog) {
+            $this->_RestLog = ClassRegistry::init($this->_settings['log']['model']);
+        }
+
+        return $this->_RestLog; 
+    }
+
+    public function log($key, $val = null) {
+        // Write log
+        if ($key === true && func_num_args() === 1) {
+            if (!@$this->_settings['log']['model']) {
+                return true;
+            }
+            
+            $this->RestLog()->create();
+            return $this->RestLog()->save($this->_logData);
         }
 
         // Multiple values: recurse
@@ -173,36 +247,69 @@ Class RestComponent extends Object {
         return true;
     }
 
+    /**
+     * Sets or returns credentials as found in the 'Authorization' header
+     * sent by the client.
+     *
+     * Have your client set a header like:
+     * Authorization: TRUEREST username=john&password=xxx&apikey=247b5a2f72df375279573f2746686daa<
+     * http://docs.amazonwebservices.com/AmazonS3/2006-03-01/index.html?RESTAuthentication.html
+     *
+     * credentials(true) sets credentials
+     * credentials() returns full array
+     * credentials('username') returns username
+     *
+     * @param mixed boolean or string $set
+     * 
+     * @return <type>
+     */
     public function credentials($set = false) {
-        // Have your client set a header like:
-        // Authorization: TRUEREST username=john&password=xxx&apikey=247b5a2f72df375279573f2746686daa<
-        // http://docs.amazonwebservices.com/AmazonS3/2006-03-01/index.html?RESTAuthentication.html
-
-        if (!$set) {
+        // Return full credentials
+        if ($set === false) {
             return $this->_credentials;
         }
-        
-        if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
-            $parts = explode(' ', $_SERVER['HTTP_AUTHORIZATION']);
-            $match = array_shift($parts);
-            if ($match !== $this->_settings['authvar.keyword']) {
-                return false;
+
+        // Set credentials
+        if ($set === true) {
+            if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
+                $parts = explode(' ', $_SERVER['HTTP_AUTHORIZATION']);
+                $match = array_shift($parts);
+                if ($match !== $this->_settings['auth']['keyword']) {
+                    return false;
+                }
+                $str = join(' ', $parts);
+                parse_str($str, $this->_credentials);
             }
-            $str = join(' ', $parts);
-            parse_str($str, $this->_credentials);
+
+            $this->log(array(
+                'username' => $this->_credentials[$this->_settings['auth']['fields']['username']],
+                'apikey' => $this->_credentials[$this->_settings['auth']['fields']['apikey']],
+                'class' => $this->_credentials[$this->_settings['auth']['fields']['class']],
+            ));
+
+            return $this->_credentials;
         }
 
-        $this->log(array(
-            'username' => $this->_credentials[$this->_settings['authvar.username']],
-            'apikey' => $this->_credentials[$this->_settings['authvar.apikey']],
-            'class' => $this->_credentials[$this->_settings['authvar.class']],
-        ));
+        // Return 1 field
+        if (is_string($set)) {
+            // First try key as is
+            if (null !== ($val = @$this->_credentials[$set])) {
+                return $val;
+            }
+            
+            // Fallback to the mapped key according to authfield settings
+            if (null !== ($val = @$this->_credentials[$this->_settings['auth']['fields'][''.$set]])) {
+                return $val;
+            }
+            
+            return null;
+        }
 
-        return $this->_credentials;
+        return $this->abort('credential argument not supported');
     }
 
     /**
-     * Get a list of Controllers where Rest component has been activated
+     * Returns a list of Controllers where Rest component has been activated
      * uses Cache::read & Cache::write by default to tackle performance
      * issues.
      *
@@ -476,7 +583,7 @@ Class RestComponent extends Object {
         // Die.. ugly. but very safe. which is what we need
         // or all Auth & Acl work could be circumvented
         $this->log(array(
-            'status' => $status,
+            'httpcode' => $code,
             'error' => $error,
         ));
         $this->shutdown($this->Controller);
