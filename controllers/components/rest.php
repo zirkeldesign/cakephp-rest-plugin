@@ -99,12 +99,16 @@ Class RestComponent extends Object {
 
         // Rate Limit
         $class = $this->credentials('class');
-        list ($time, $max) = $this->_settings['ratelimit']['classlimits'][$class];
-        if (!$this->ratelimit($time, $max)) {
-            $msg = sprintf('You have reached your ratelimit (> %s requests in %s)',
-                $max, str_replace('-', '', $time));
-            $this->log('ratelimited', 1);
-            return $this->abort($msg);
+        if (!$class) {
+            $this->warning('Unable to establish class');
+        } else {
+            list ($time, $max) = $this->_settings['ratelimit']['classlimits'][$class];
+            if (!$this->ratelimit($time, $max)) {
+                $msg = sprintf('You have reached your ratelimit (> %s requests in %s)',
+                    $max, str_replace('-', '', $time));
+                $this->log('ratelimited', 1);
+                return $this->abort($msg);
+            }
         }
 
         // Validate & Modify Post
@@ -348,13 +352,13 @@ Class RestComponent extends Object {
                 }
                 $str = join(' ', $parts);
                 parse_str($str, $this->_credentials);
-            }
 
-            $this->log(array(
-                'username' => $this->_credentials[$this->_settings['auth']['fields']['username']],
-                'apikey' => $this->_credentials[$this->_settings['auth']['fields']['apikey']],
-                'class' => $this->_credentials[$this->_settings['auth']['fields']['class']],
-            ));
+                $this->log(array(
+                    'username' => $this->_credentials[$this->_settings['auth']['fields']['username']],
+                    'apikey' => $this->_credentials[$this->_settings['auth']['fields']['apikey']],
+                    'class' => $this->_credentials[$this->_settings['auth']['fields']['class']],
+                ));
+            }
 
             return $this->_credentials;
         }
