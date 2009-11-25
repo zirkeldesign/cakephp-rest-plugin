@@ -258,11 +258,13 @@ Class RestComponent extends Object {
             return $this->abort('Need a identfield or I will not know what to '.
                 'ratelimit on');
         }
-        
+
+        $identField = $this->_settings['ratelimit']['identfield'];
         $logs = $this->RestLog()->find('list', array(
-            'fields' => array('id', $this->_settings['ratelimit']['identfield']),
+            'fields' => array('id', $identField),
             'conditions' => array(
                 'requested >' => date('Y-m-d H:i:s', strtotime($time)),
+                $identField => $this->credentials($identField),
             ),
         ));
 
