@@ -35,7 +35,6 @@ Class RestComponent extends Object {
         'extensions' => array('xml', 'json'),
         'viewsFromPlugin' => true,
         'authKeyword' => 'TRUEREST',
-        'showControllers' => true,
         'requireSecure' => false,
 
         // Both Helper & Component options
@@ -110,6 +109,7 @@ Class RestComponent extends Object {
         }
 
         if (false !== $this->_settings['requireSecure']) {
+            var_dump($this->_settings['requireSecure']);
             if (!isset($this->Controller->Security)
                 || !is_object($this->Controller->Security)) {
                 return $this->abort('You need to enable the Security component first');
@@ -175,8 +175,10 @@ Class RestComponent extends Object {
             // Instantiate all remaining controllers and check components
             foreach ($controllers as $controller) {
                 $className = $controller.'Controller';
-                if (!App::import('Controller', $controller)) {
-                    continue;
+                if (!class_exists($className)) {
+                    if (!App::import('Controller', $controller)) {
+                        continue;
+                    }
                 }
                 $Controller = new $className();
 
@@ -188,6 +190,8 @@ Class RestComponent extends Object {
                 unset($Controller);
             }
 
+            sort($restControllers);
+            
             if ($cached) {
                 Cache::write($ckey, $restControllers);
             }
@@ -366,11 +370,6 @@ Class RestComponent extends Object {
             'data' => $data,
         );
 
-        // showControllers
-        if ($this->_settings['showControllers']) {
-            $response['meta']['controllers'] = $this->controllers();
-        }
-        
         return $response;
     }
 
