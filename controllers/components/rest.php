@@ -567,7 +567,7 @@ Class RestComponent extends Object {
 
             $data = Set::insert($data, $dest, Set::extract($path, $viewVars));
         }
-        
+
         return $data;
     }
 

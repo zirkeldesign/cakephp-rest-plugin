@@ -2,6 +2,8 @@
 App::import('Helper', 'Javascript');
 class RestJsonHelper extends JavascriptHelper {
 	function serialize($data, $name = null, $options = array()) {
+        return json_encode($data);
+        
         $json      = $this->object($data);
         $jsonClean = $this->_jsonCleanup($json);
 		return $jsonClean;
