@@ -33,6 +33,9 @@ Implementation
 
 Controller
 -----------
+Beware that you can no longer use ->render() yourself
+
+
     class ServersController extends AppController {
         public $components = array(
             'RequestHandler',
