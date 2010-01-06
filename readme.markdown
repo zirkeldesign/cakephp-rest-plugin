@@ -13,6 +13,10 @@ Based on:
   [3]: http://book.cakephp.org/view/476/REST
   [4]: http://cakedc.com/eng/developer/mark_story/2008/12/02/nate-abele-restful-cakephp
 
+Todo:
+- XML (now only JSON is supported)
+- Tests
+
 License: BSD-style
 
 Installation
