@@ -13,6 +13,14 @@ Based on:
   [3]: http://book.cakephp.org/view/476/REST
   [4]: http://cakedc.com/eng/developer/mark_story/2008/12/02/nate-abele-restful-cakephp
 
+I held a presentation during the first Dutch CakePHP meetup
+
+- [REST presentation at slideshare][1]
+
+  [1]: http://www.slideshare.net/kevinvz/rest-presentation-2901872
+
+
+
 Todo:
 - XML (now only JSON is supported)
 - Tests
