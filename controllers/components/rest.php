@@ -678,4 +678,3 @@ Class RestComponent extends Object {
     }
 
 }
-?>
