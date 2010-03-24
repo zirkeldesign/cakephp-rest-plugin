@@ -15,9 +15,9 @@ Based on:
 
 I held a presentation during the first Dutch CakePHP meetup
 
-- [REST presentation at slideshare][1]
+- [REST presentation at slideshare][5]
 
-  [1]: http://www.slideshare.net/kevinvz/rest-presentation-2901872
+  [5]: http://www.slideshare.net/kevinvz/rest-presentation-2901872
 
 
 Todo:
