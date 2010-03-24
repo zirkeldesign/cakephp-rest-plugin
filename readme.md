@@ -20,10 +20,14 @@ I held a presentation during the first Dutch CakePHP meetup
   [1]: http://www.slideshare.net/kevinvz/rest-presentation-2901872
 
 
-
 Todo:
-- XML (now only JSON is supported)
-- Tests
+
+ - XML (now only JSON is supported)
+ - Tests
+ - Documentation
+ - The RestLog model that tracks usage should focus more on IP for rate-limiting than account info. This is mostly to defend against denial of server & brute force attempts
+ - Cake 1.3 support
+ - Maybe some Refactoring. This is pretty much the first attempt at a working plugin
 
 License: BSD-style
 
