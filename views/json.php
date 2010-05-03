@@ -42,51 +42,51 @@ class JsonView extends View {
             $out = json_encode($content); 
         } else { 
             // For PHP 4 until PHP 5.1
-            $out = $this->_jsonEncode($content); 
+            $out = $this->encode($content);
         } 
         Configure::write('debug', 0); // Omit time in end of view 
         return $out; 
     } 
 
     // Adapted from http://www.php.net/manual/en/function.json-encode.php#82904. Author: Steve (30-Apr-2008 05:35) 
-    function _jsonEncode($content) { 
-        if (is_null($content)) { 
+    function encode ($response) {
+        if (is_null($response)) {
             return 'null'; 
         } 
-        if ($content === false) { 
+        if ($response === false) {
             return 'false'; 
         } 
-        if ($content === true) { 
+        if ($response === true) {
             return 'true'; 
         } 
-        if (is_scalar($content)) { 
-            if (is_float($content)) { 
-                return floatval(str_replace(",", ".", strval($content))); 
+        if (is_scalar($response)) {
+            if (is_float($response)) {
+                return floatval(str_replace(",", ".", strval($response)));
             } 
 
-            if (is_string($content)) { 
+            if (is_string($response)) {
                 static $jsonReplaces = array(array("\\", "/", "\n", "\t", "\r", "\b", "\f", '"'), array('\\\\', '\\/', '\\n', '\\t', '\\r', '\\b', '\\f', '\"')); 
-                return '"' . str_replace($jsonReplaces[0], $jsonReplaces[1], $content) . '"'; 
+                return '"' . str_replace($jsonReplaces[0], $jsonReplaces[1], $response) . '"';
             } else { 
-                return $content; 
+                return $response;
             } 
         } 
         $isList = true; 
-        for ($i = 0, reset($content); $i < count($content); $i++, next($content)) { 
-            if (key($content) !== $i) { 
+        for ($i = 0, reset($response); $i < count($response); $i++, next($response)) {
+            if (key($response) !== $i) {
                 $isList = false; 
                 break; 
             } 
         } 
         $result = array(); 
         if ($isList) { 
-            foreach ($content as $v) { 
-                $result[] = $this->_jsonEncode($v); 
+            foreach ($response as $v) {
+                $result[] = $this->encode($v);
             } 
             return '[' . join(',', $result) . ']'; 
         } else { 
-            foreach ($content as $k => $v) { 
-                $result[] = $this->_jsonEncode($k) . ':' . $this->_jsonEncode($v); 
+            foreach ($response as $k => $v) {
+                $result[] = $this->encode($k) . ':' . $this->encode($v);
             } 
             return '{' . join(',', $result) . '}'; 
         } 

@@ -21,7 +21,7 @@ class XmlView extends view{
 			//As a prep we want to reindex numerically index arrays to allow for proper elements
 			//ie moods->mood->rowData instead of moods->row,row
 			
-			$this->arr2Xml( $this->viewVars['response'] );
+			$this->encode( $this->viewVars['response'] );
 			
 			//firecake($this->params);
 			$rootTag = $this->params['controller'] . 'Response';
@@ -34,9 +34,9 @@ class XmlView extends view{
 
 	}
 	
-	function arr2Xml( $arr ){
+	function encode( $response ){
 		
-		foreach( $arr as $key=>$val ){
+		foreach( $response as $key=>$val ){
 			//starting tag
 			if( !is_numeric($key) ){
 				$this->response .= sprintf('<%s>',$key);
@@ -53,14 +53,14 @@ class XmlView extends view{
 						
 						$this->response .= sprintf("<%s>", $tag );
 						
-						$this->arr2Xml($item);
+						$this->encode($item);
 						
 						$this->response .= sprintf("</%s>", $tag );
 					}
 
 				}
 				else{
-					$this->arr2Xml( $val );
+					$this->encode( $val );
 				}
 			 	
 			}

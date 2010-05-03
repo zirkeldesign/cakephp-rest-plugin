@@ -19,8 +19,6 @@ Class RestComponent extends Object {
     );
 
     public $Controller;
-    public $RestXml;
-    public $RestJson;
     public $postData;
 
     protected $_RestLog;
@@ -121,10 +119,6 @@ Class RestComponent extends Object {
 
         // Set content-headers
         $this->headers();
-
-        // Attach Rest Helper to controller
-        $this->Controller->helpers['Rest.' . $this->_activeHelper] =
-            $this->_settings;
     }
 
     /**
@@ -205,9 +199,19 @@ Class RestComponent extends Object {
         if ($this->_settings['viewsFromPlugin']) {
             // Setup the controller so it can use
             // the view inside this plugin
-            $this->Controller->layout   = false;
-            $this->Controller->plugin   = 'rest';
-            $this->Controller->viewPath = 'generic' . DS . $this->Controller->params['url']['ext'];
+
+//            $this->Controller->layout   = false;
+//            $this->Controller->plugin   = 'rest';
+//            $this->Controller->viewPath = 'generic' . DS . $this->Controller->params['url']['ext'];
+
+            switch( $this->Controller->params['url']['ext'] ){
+                   case 'json':
+                           $this->Controller->view         = 'Rest.json';
+                           break;
+                   case 'xml':
+                           $this->Controller->view         = 'Rest.xml';
+                           break;
+            }
         }
     }
 
@@ -546,21 +550,6 @@ Class RestComponent extends Object {
         return $isActive;
     }
 
-    /**
-     * Access to the active XML/Json Helper
-     *
-     * @return <type>
-     */
-    public function helper() {
-        if (!is_object($this->{$this->_activeHelper})) {
-            App::import('Helper', 'Rest.'. $this->_activeHelper);
-            $className = $this->_activeHelper . 'Helper';
-            $this->{$this->_activeHelper} = new $className();
-        }
-    
-        return $this->{$this->_activeHelper};
-    }
-
     public function error($format, $arg1 = null, $arg2 = null) {
         $args = func_get_args();
         if (count($args) > 1) $format = vsprintf($format, $args);
@@ -689,6 +678,12 @@ Class RestComponent extends Object {
         return $response;
     }
 
+	public function encode ($data) {
+		$className = ucwords($this->Controller->params['url']['ext']).'View';
+		$View = ClassRegistry::init($className);
+		return $View->encode($data);
+	}
+
     /**
      * Should be called by Controller->redirect to dump
      * an error & stop further execution.
@@ -720,7 +715,7 @@ Class RestComponent extends Object {
         $this->Controller->header(sprintf('HTTP/1.1 %s %s', $code, $this->codes[$code]));
         
         $this->headers();
-        $xml = $this->helper()->serialize($this->response($data));
+        $encoded = $this->encode($this->response($data));
         
         // Die.. ugly. but very safe. which is what we need
         // or all Auth & Acl work could be circumvented
@@ -729,7 +724,7 @@ Class RestComponent extends Object {
             'error' => $error,
         ));
         $this->shutdown($this->Controller);
-        die($xml);
+        die($encoded);
     }
 
 }
