@@ -13,22 +13,26 @@ Based on:
   [3]: http://book.cakephp.org/view/476/REST
   [4]: http://cakedc.com/eng/developer/mark_story/2008/12/02/nate-abele-restful-cakephp
 
-I held a presentation during the first Dutch CakePHP meetup
+I held a presentation on this plugin during the first Dutch CakePHP meetup:
 
-- [REST presentation at slideshare][1]
+- [REST presentation at slideshare][5]
 
-  [1]: http://www.slideshare.net/kevinvz/rest-presentation-2901872
-
+  [5]: http://www.slideshare.net/kevinvz/rest-presentation-2901872
 
 
 Todo:
-- XML (now only JSON is supported)
-- Tests
+
+ - XML (now only JSON is supported)
+ - Tests
+ - Documentation
+ - The RestLog model that tracks usage should focus more on IP for rate-limiting than account info. This is mostly to defend against denial of server & brute force attempts
+ - Cake 1.3 support
+ - Maybe some Refactoring. This is pretty much the first attempt at a working plugin
 
 License: BSD-style
 
 Installation
-=============================
+============
 
 As a git submodule
 ------------------
@@ -47,7 +51,7 @@ Controller
 -----------
 Beware that you can no longer use ->render() yourself
 
-
+    <?php
     class ServersController extends AppController {
         public $components = array(
             'RequestHandler',
@@ -85,11 +89,11 @@ Beware that you can no longer use ->render() yourself
 
             parent::redirect($url, $status, $exit);
         }
-
     }
+    ?>
 
 `extract` extracts variables you have in: `$this->viewVars`
-and makes them available in the resulting XML or json under
+and makes them available in the resulting XML or JSON under
 the name you specify in the value part.
 
 Authorization
@@ -108,6 +112,6 @@ Router
     // in the REST API
     Router::mapResources(array('servers'));
 
-    // Add xml + json to your parseExtensions
+    // Add XML + JSON to your parseExtensions
     Router::parseExtensions('rss', 'json', 'xml', 'json', 'pdf');
 
