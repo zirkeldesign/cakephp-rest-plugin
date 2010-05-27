@@ -1,5 +1,21 @@
-Not ready for production use!
-=============================
+CakePHP REST Plugin takes whatever your existing controller actions gather
+in viewvars, reformats it in json, and outputs it to the client.
+Be cause you hook it into existing actions, you only have to write your
+features once, and this plugin will just unlock them as API.
+The plugin know's it's being called by looking at the extension in the url: .json.
+
+The reformatting can even change the structure of your existing viewvars by
+using bi-directional xpaths. So you can extract info using an xpath, and
+it will be written into API json with another xpath. If this doesn't make any
+sense, look at the examples.
+
+You attach the Rest.Rest component to a controller, but you can limit REST
+activity to a single action.
+
+For best results, 2 changes to your application have to be made.
+
+  1 A check for REST in errors & redirects
+  2 Resource mapping in your router
 
 Based on:
 
@@ -20,7 +36,7 @@ I held a presentation on this plugin during the first Dutch CakePHP meetup:
   [5]: http://www.slideshare.net/kevinvz/rest-presentation-2901872
 
 
-Todo:
+Still in testing. Todo:
 
  - XML (now only JSON is supported)
  - Tests
@@ -31,24 +47,21 @@ Todo:
 
 License: BSD-style
 
-Installation
-============
+# Installation
 
-As a git submodule
-------------------
+## As a git submodule
 
     git submodule add git://github.com/kvz/cakephp-rest-plugin.git app/plugins/rest
     git submodule update --init
 
-Other
------
+## Other
+
 Just place the files directly under: `app/plugins/rest`
 
-Implementation
-==============
+# Implementation
 
-Controller
------------
+## Controller
+
 Beware that you can no longer use ->render() yourself
 
     <?php
@@ -96,8 +109,8 @@ Beware that you can no longer use ->render() yourself
 and makes them available in the resulting XML or JSON under
 the name you specify in the value part.
 
-Authorization
--------------
+## Authorization
+
 Check the HTTP header as shown here: http://docs.amazonwebservices.com/AmazonS3/2006-03-01/index.html?RESTAuthentication.html
 You can control the `authKeyword` setting to control what keyword belongs to
 your REST API. By default it uses: TRUEREST. Have your users supply a header like:
@@ -106,8 +119,8 @@ your REST API. By default it uses: TRUEREST. Have your users supply a header lik
 Now, inside your controller these variables will be available by calling
 `$this->Rest->credentials()`. So login anyone with e.g. `$this->Auth->login()`;
 
-Router
-------
+## Router
+
     // Add an element for each controller that you want to open up
     // in the REST API
     Router::mapResources(array('servers'));
@@ -115,3 +128,14 @@ Router
     // Add XML + JSON to your parseExtensions
     Router::parseExtensions('rss', 'json', 'xml', 'json', 'pdf');
 
+## Callacks
+
+If you're using the built-in ratelimiter, you may still want a little control yourself.
+I provide that in the form of 4 callbacks:
+
+    public function restlogBeforeSave () {}
+    public function restlogAfterSave () {}
+    public function restlogBeforeFind () {}
+    public function restlogAfterFind () {}
+
+That will be called in you AppController if they exists.
