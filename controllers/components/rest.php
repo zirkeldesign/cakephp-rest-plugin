@@ -145,14 +145,25 @@ Class RestComponent extends Object {
         }
 
         // Rate Limit
-        $class = $this->credentials('class');
+        $credentials = $this->credentials();
+        $class       = @$credentials['class'];
         if (!$class) {
             $this->warning('Unable to establish class');
         } else {
             list ($time, $max) = $this->_settings['ratelimit']['classlimits'][$class];
-            if (!$this->ratelimit($time, $max)) {
-                $msg = sprintf('You have reached your ratelimit (> %s requests in %s)',
-                    $max, str_replace('-', '', $time));
+
+            $cb = array($this->Controller, 'restRatelimitMax');
+            if (is_callable($cb)) {
+                $max = call_user_func($cb, $this, $credentials);
+            }
+
+            if (true !== ($count = $this->ratelimit($time, $max))) {
+                $msg = sprintf(
+                    'You have reached your ratelimit (%s >= %s requests in %s)',
+                    $count,
+                    $max,
+                    str_replace('-', '', $time)
+                );
                 $this->log('ratelimited', 1);
                 return $this->abort($msg);
             }
@@ -273,10 +284,9 @@ Class RestComponent extends Object {
             ),
         ));
         $this->restlogAfterFind();
-
-
-        if (count($logs) >= $max) {
-            return false;
+        $count = count($logs);
+        if ($count >= $max) {
+            return $count;
         }
 
         return true;

@@ -133,9 +133,15 @@ Now, inside your controller these variables will be available by calling
 If you're using the built-in ratelimiter, you may still want a little control yourself.
 I provide that in the form of 4 callbacks:
 
-    public function restlogBeforeSave () {}
-    public function restlogAfterSave () {}
-    public function restlogBeforeFind () {}
-    public function restlogAfterFind () {}
+    public function restlogBeforeSave ($Rest) {}
+    public function restlogAfterSave ($Rest) {}
+    public function restlogBeforeFind ($Rest) {}
+    public function restlogAfterFind ($Rest) {}
 
 That will be called in you AppController if they exists.
+
+You may want to give a specific user a specific ratelimit. In that case you can use
+the following callback in your User Model:
+
+    public static function restRatelimitMax ($Rest, $credentials = array()) { }
+
