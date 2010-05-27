@@ -89,7 +89,7 @@ Class RestComponent extends Object {
             'controller' => $this->Controller->name,
             'action' => $this->Controller->action,
             'model_id' => @$this->Controller->passedArgs[0]
-                ? $this->Controller->passedArgs[0]
+                ? @$this->Controller->passedArgs[0]
                 : 0,
             'ratelimited' => 0,
             'requested' => date('Y-m-d H:i:s'),
@@ -263,6 +263,8 @@ Class RestComponent extends Object {
         }
 
         $identField = $this->_settings['ratelimit']['identfield'];
+
+        $this->restlogBeforeFind();
         $logs = $this->RestLog()->find('list', array(
             'fields' => array('id', $identField),
             'conditions' => array(
@@ -270,12 +272,47 @@ Class RestComponent extends Object {
                 $identField => $this->credentials($identField),
             ),
         ));
+        $this->restlogAfterFind();
+
 
         if (count($logs) >= $max) {
             return false;
         }
 
         return true;
+    }
+
+    public function restlogBeforeSave() {
+        $args = func_get_args();
+        $cb    = array($this->Controller, __FUNCTION__);
+        if (is_callable($cb)) {
+            array_unshift($args, $this);
+            return call_user_func_array($cb, $args);
+        }
+    }
+    public function restlogAfterSave() {
+        $args = func_get_args();
+        $cb    = array($this->Controller, __FUNCTION__);
+        if (is_callable($cb)) {
+            array_unshift($args, $this);
+            return call_user_func_array($cb, $args);
+        }
+    }
+    public function restlogBeforeFind() {
+        $args = func_get_args();
+        $cb    = array($this->Controller, __FUNCTION__);
+        if (is_callable($cb)) {
+            array_unshift($args, $this);
+            return call_user_func_array($cb, $args);
+        }
+    }
+    public function restlogAfterFind() {
+        $args = func_get_args();
+        $cb    = array($this->Controller, __FUNCTION__);
+        if (is_callable($cb)) {
+            array_unshift($args, $this);
+            return call_user_func_array($cb, $args);
+        }
     }
 
     /**
@@ -309,7 +346,13 @@ Class RestComponent extends Object {
             }
             
             $this->RestLog()->create();
-            return $this->RestLog()->save($this->_logData);
+            $this->restlogBeforeSave();
+            $res = $this->RestLog()->save(array(
+                $this->RestLog()->alias => $this->_logData,
+            ));
+            $this->restlogAfterSave();
+
+            return $res;
         }
 
         // Multiple values: recurse
