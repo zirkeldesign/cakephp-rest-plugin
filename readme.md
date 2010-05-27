@@ -128,7 +128,7 @@ Now, inside your controller these variables will be available by calling
     // Add XML + JSON to your parseExtensions
     Router::parseExtensions('rss', 'json', 'xml', 'json', 'pdf');
 
-## Callacks
+## Callbacks
 
 If you're using the built-in ratelimiter, you may still want a little control yourself.
 I provide that in the form of 4 callbacks:
@@ -143,5 +143,30 @@ That will be called in you AppController if they exists.
 You may want to give a specific user a specific ratelimit. In that case you can use
 the following callback in your User Model:
 
-    public static function restRatelimitMax ($Rest, $credentials = array()) { }
+    public function restRatelimitMax ($Rest, $credentials = array()) { }
 
+And for that user the return value of the callback will be used instead of the general
+class limit you could have specified in the settings.
+
+### Customizing callback
+
+You can map callbacks to different places using the `callbacks` setting like so:
+
+
+    <?php
+    class ServersController extends AppController {
+        public $components = array(
+            'Rest.Rest' => array(
+                'callbacks' => array(
+                    'cbRestlogBeforeSave' => 'restlogBeforeSave',
+                    'cbRestlogAfterSave' => 'restlogAfterSave',
+                    'cbRestlogBeforeFind' => 'restlogBeforeFind',
+                    'cbRestlogAfterFind' => array('Common', 'setCache'),
+                    'cbRestRatelimitMax' => 'restRatelimitMax',
+                ),
+            ),
+        );
+    }
+    ?>
+
+If the resolved callback is a string we assume it's in the calling controller. 

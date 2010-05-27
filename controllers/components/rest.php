@@ -28,9 +28,16 @@ Class RestComponent extends Object {
     protected $_activeHelper = false;
     protected $_feedback = array();
     protected $_credentials = array();
-    
+
     protected $_settings = array(
         // Component options
+        'callbacks' => array(
+            'cbRestlogBeforeSave' => 'restlogBeforeSave',
+            'cbRestlogAfterSave' => 'restlogAfterSave',
+            'cbRestlogBeforeFind' => 'restlogBeforeFind',
+            'cbRestlogAfterFind' => 'restlogAfterFind',
+            'cbRestRatelimitMax' => 'restRatelimitMax',
+        ),
         'extensions' => array('xml', 'json'),
         'viewsFromPlugin' => true,
         'skipControllers' => array(
@@ -121,11 +128,37 @@ Class RestComponent extends Object {
     }
 
     /**
-     * Write a logentry
+     * Catch & fire callbacks. You can map callbacks to different places
+     * using the value parts in $this->_settings['callbacks'].
+     * If the resolved callback is a string we assume it's in
+     * the controller. 
      *
-     * @param <type> $controller
+     * @param string $name
+     * @param array  $arguments
      */
-    public function shutdown(&$controller) {
+    public function  __call ($name, $arguments) {
+        if (!isset($this->_settings['callbacks'][$name])) {
+            return $this->abort('Function does not exist: '. $name);
+        }
+
+        $cb = $this->_settings['callbacks'][$name];
+        if (is_string($cb)) {
+            $cb = array($this->Controller, $cb);
+        }
+
+        if (is_callable($cb)) {
+            array_unshift($arguments, $this);
+            return call_user_func_array($cb, $arguments);
+        }
+    }
+
+
+    /**
+     * Write the accumulated logentry
+     *
+     * @param <type> $Controller
+     */
+    public function shutdown (&$Controller) {
         $this->log(array(
             'responded' => date('Y-m-d H:i:s'),
         ));
@@ -152,9 +185,9 @@ Class RestComponent extends Object {
         } else {
             list ($time, $max) = $this->_settings['ratelimit']['classlimits'][$class];
 
-            $cb = array($this->Controller, 'restRatelimitMax');
-            if (is_callable($cb)) {
-                $max = call_user_func($cb, $this, $credentials);
+            $cbMax = $this->cbRestRatelimitMax($credentials);
+            if ($cbMax) {
+                $max = $cbMax;
             }
 
             if (true !== ($count = $this->ratelimit($time, $max))) {
@@ -206,7 +239,7 @@ Class RestComponent extends Object {
      *
      * @return boolean
      */
-    public function numeric($array = array()) {
+    public function numeric ($array = array()) {
         if (empty($array)) {
             return null;
         }
@@ -225,7 +258,7 @@ Class RestComponent extends Object {
      * @param <type> $data
      * @return <type>
      */
-    protected function _modelizePost(&$data) {
+    protected function _modelizePost (&$data) {
         if (!is_array($data)) {
             return $data;
         }
@@ -255,7 +288,7 @@ Class RestComponent extends Object {
      *
      * @return <type>
      */
-    public function ratelimit($time, $max) {
+    public function ratelimit ($time, $max) {
         // No rate limit active
         if (empty($this->_settings['ratelimit'])) {
             return true;
@@ -275,7 +308,7 @@ Class RestComponent extends Object {
 
         $identField = $this->_settings['ratelimit']['identfield'];
 
-        $this->restlogBeforeFind();
+        $this->cbRestlogBeforeFind();
         $logs = $this->RestLog()->find('list', array(
             'fields' => array('id', $identField),
             'conditions' => array(
@@ -283,46 +316,13 @@ Class RestComponent extends Object {
                 $identField => $this->credentials($identField),
             ),
         ));
-        $this->restlogAfterFind();
+        $this->cbRestlogAfterFind();
         $count = count($logs);
         if ($count >= $max) {
             return $count;
         }
 
         return true;
-    }
-
-    public function restlogBeforeSave() {
-        $args = func_get_args();
-        $cb    = array($this->Controller, __FUNCTION__);
-        if (is_callable($cb)) {
-            array_unshift($args, $this);
-            return call_user_func_array($cb, $args);
-        }
-    }
-    public function restlogAfterSave() {
-        $args = func_get_args();
-        $cb    = array($this->Controller, __FUNCTION__);
-        if (is_callable($cb)) {
-            array_unshift($args, $this);
-            return call_user_func_array($cb, $args);
-        }
-    }
-    public function restlogBeforeFind() {
-        $args = func_get_args();
-        $cb    = array($this->Controller, __FUNCTION__);
-        if (is_callable($cb)) {
-            array_unshift($args, $this);
-            return call_user_func_array($cb, $args);
-        }
-    }
-    public function restlogAfterFind() {
-        $args = func_get_args();
-        $cb    = array($this->Controller, __FUNCTION__);
-        if (is_callable($cb)) {
-            array_unshift($args, $this);
-            return call_user_func_array($cb, $args);
-        }
     }
 
     /**
@@ -356,11 +356,11 @@ Class RestComponent extends Object {
             }
             
             $this->RestLog()->create();
-            $this->restlogBeforeSave();
+            $this->cbRestlogBeforeSave();
             $res = $this->RestLog()->save(array(
                 $this->RestLog()->alias => $this->_logData,
             ));
-            $this->restlogAfterSave();
+            $this->cbRestlogAfterSave();
 
             return $res;
         }
