@@ -89,7 +89,7 @@ Beware that you can no longer use ->render() yourself
          * @return boolean
          */
         protected function _isRest() {
-            return is_object(@$this->Rest) && $this->Rest->isActive();
+            return !empty($this->Rest) && is_object($this->Rest) && $this->Rest->isActive();
         }
 
         public function redirect($url, $status = null, $exit = true) {
