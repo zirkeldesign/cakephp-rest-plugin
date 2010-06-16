@@ -58,6 +58,22 @@ License: BSD-style
 
 Just place the files directly under: `app/plugins/rest`
 
+## .htaccess
+
+Do you run Apache? Make your `app/webroot/.htaccess` look like so:
+
+    <IfModule mod_rewrite.c>
+        RewriteEngine On
+        RewriteCond %{REQUEST_FILENAME} !-d
+        RewriteCond %{REQUEST_FILENAME} !-f
+        RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
+
+        RewriteRule .* - [env=HTTP_AUTHORIZATION:%{HTTP:Authorization},last]
+    </IfModule>
+
+In my experience Nginx & FastCGI already make the HTTP_AUTHORIZATION available
+which is used to parse credentials for authentication.
+
 # Implementation
 
 ## Controller
