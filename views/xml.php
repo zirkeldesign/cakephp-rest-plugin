@@ -1,28 +1,32 @@
 <?php
 /**
-* 	View Class for XML
-* 	
-* 	@author Jonathan Dalrymple
-*/
+ * View Class for XML
+ *
+ * @author Jonathan Dalrymple
+ */
 class XmlView extends View {
 	public $response = '';
+	public $header   = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
 	
 	public function render ($action = null, $layout = null, $file = null) {
-		if (array_key_exists('response', $this->viewVars)){
-			//As a prep we want to reindex numerically index arrays to allow for proper elements
-			//ie moods->mood->rowData instead of moods->row,row
-
-			$rootTag = Inflector::tableize($this->params['controller']) . '_response';
-			
-			$this->encode(array($rootTag => $this->viewVars['response']));
-			
-			return $this->_xmlCleanup($this->response);
+		if (!array_key_exists('response', $this->viewVars)) {
+		    trigger_error(
+				'viewVar "response" should have been set by Rest component already',
+				E_USER_ERROR
+			);
+			return false;
 		}
+
+		$rootTag = Inflector::tableize($this->params['controller']) . '_response';
+
+		$this->encode(array($rootTag => $this->viewVars['response']));
+		
+		return $this->_xmlCleanup($this->response);
 	}
 	
-	protected function _xmlCleanup($xml, $header = null) {
+	protected function _xmlCleanup ($xml, $header = null) {
 		if ($header === null) {
-			$header  = '<?xml version="1.0" encoding="utf-8"?>' . "\n";
+			$header  = $this->header;
 		}
 
 		// Indentation
@@ -41,7 +45,7 @@ class XmlView extends View {
 			$this->response .= $response;
 			return;
 		}
-
+		
 		foreach ($response as $key => $val) {
 			// starting tag
 			if (!is_numeric($key)) {
@@ -50,7 +54,7 @@ class XmlView extends View {
 			// Another array
 			if (is_array($val)){
 				// Handle non-associative arrays
-				if ($this->isNumericallyIndexedArray($val)) {
+				if ($this->_numeric($val)) {
 					foreach ($val as $item) {
 						#$tag = Inflector::singularize($key);
 						$tag = 'item';
@@ -79,7 +83,7 @@ class XmlView extends View {
 	* 
 	* @return Boolean True or False depending on the makeup of the array index
 	*/
-	public function isNumericallyIndexedArray ($arr) {
+    protected function _numeric ($arr) {
 		foreach ($arr as $key => $val) {
 			if (!is_numeric($key)) {
 				return false;
