@@ -50,10 +50,10 @@ I held a presentation on this plugin during the first Dutch CakePHP meetup:
 Todo:
 
  - More testing
- - The RestLog model that tracks usage should focus more on IP for rate-limiting 
+ - Cake 1.3 support?
+ - DONE - The RestLog model that tracks usage should focus more on IP for rate-limiting
    than account info. This is mostly to defend against denial of server & brute
    force attempts
- - Cake 1.3 support?
  - DONE - Maybe some Refactoring. This is pretty much the first attempt at a working plugin
  - DONE (thx to Jonathan Dalrymple) - XML (now only JSON is supported)
 

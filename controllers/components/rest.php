@@ -64,8 +64,8 @@ Class RestComponent extends Object {
 			'cbRestRatelimitMax' => 'restRatelimitMax',
 		),
 		'extensions' => array('xml', 'json'),
-		'viewsFromPlugin' => true,
-		'skipControllers' => array(
+		'viewsFromPlugin' => true, 
+		'skipControllers' => array( // Don't show these as actual rest controllers even though they have the component attached
 			'App',
 			'Defaults',
 		),
@@ -80,7 +80,7 @@ Class RestComponent extends Object {
 		),
 		'log' => array(
 			'model' => 'Rest.RestLog',
-			'dump' => true,
+			'dump' => true, // Saves entire in + out dumps in log. Also see config/schema/rest_logs.sql
 		),
 		'ratelimit' => array(
 			'classlimits' => array(
@@ -88,15 +88,12 @@ Class RestComponent extends Object {
 				'Customer' => array('-1 hour', 100),
 			),
 			'identfield' => 'apikey',
+			'ip_limit' => array('-1 hour', 60),  // For those not logged in
 		),
-
-		// Both Helper & Component options
-		'debug' => 0,
-
-		// Passed as Helper options
 		'view' => array(
 			'extract' => array(),
 		),
+		'debug' => 0,
 	);
 
 
@@ -315,27 +312,44 @@ Class RestComponent extends Object {
 
 		// Need logging
 		if (empty($this->_settings['log']['model'])) {
-			return $this->abort('Logging is required for any ratelimiting '.
-				'to work');
+			return $this->abort(
+				'Logging is required for any ratelimiting to work'
+			);
 		}
 
 		// Need identfield
 		if (empty($this->_settings['ratelimit']['identfield'])) {
-			return $this->abort('Need a identfield or I will not know what to '.
-				'ratelimit on');
+			return $this->abort(
+				'Need a identfield or I will not know what to ratelimit on'
+			);
 		}
 
-		$identField = $this->_settings['ratelimit']['identfield'];
+		$userField = $this->_settings['ratelimit']['identfield'];
+		$userId    = $this->credentials($userField);
 
 		$this->cbRestlogBeforeFind();
-		$logs = $this->RestLog()->find('list', array(
-			'fields' => array('id', $identField),
-			'conditions' => array(
-				'requested >' => date('Y-m-d H:i:s', strtotime($time)),
-				$identField => $this->credentials($identField),
-			),
-		));
+		if ($userId) {
+			// If you're logged in
+			$logs = $this->RestLog()->find('list', array(
+				'fields' => array('id', $userField),
+				'conditions' => array(
+					$this->RestLog()->alias . '.requested >' => date('Y-m-d H:i:s', strtotime($time)),
+					$this->RestLog()->alias . '.' . $userField => $userId,
+				),
+			));
+		} else {
+			// IP based rate limiting
+			$max  = $this->_settings['ratelimit']['ip_limit'];
+			$logs = $this->RestLog()->find('list', array(
+				'fields' => array('id', $userField),
+				'conditions' => array(
+					$this->RestLog()->alias . '.requested >' => date('Y-m-d H:i:s', strtotime($time)),
+					$this->RestLog()->alias . '.ip' => $this->_logData['ip'],
+				),
+			));
+		}
 		$this->cbRestlogAfterFind();
+
 		$count = count($logs);
 		if ($count >= $max) {
 			return $count;
