@@ -140,18 +140,22 @@ the name you specify in the value part.
 
 Here's a more simple example of how you would use the viewVar `tweets` **as-is**:
 
-	public $components = array (
-        'Rest.Rest' => array(
-            'index' => array(
-                'extract' => array('tweets'),
-            ),
-        ),
-    );
+	<?php
+	class TweetsController extends AppController {
+		public $components = array (
+			'Rest.Rest' => array(
+				'index' => array(
+					'extract' => array('tweets'),
+				),
+			),
+		);
 
-    public function index() {
-        $tweets = $this->_getTweets();
-        $this->set(compact('tweets'));
+		public function index() {
+			$tweets = $this->_getTweets();
+			$this->set(compact('tweets'));
+		}
     }
+	?>
 
 And when asked for the xml version, Rest Plugin would return this to your clients:
 
@@ -207,7 +211,9 @@ your REST API. By default it uses: TRUEREST. Have your users supply a header lik
 `Authorization: TRUEREST username=john&password=xxx&apikey=247b5a2f72df375279573f2746686daa`
 
 Now, inside your controller these variables will be available by calling
-`$this->Rest->credentials()`. So login anyone with e.g. `$this->Auth->login()`;
+`$this->Rest->credentials()`.
+This plugin only handles the parsing of the header, and passes the info on to your app.
+So login anyone with e.g. `$this->Auth->login()` and the information you retrieved from `$this->Rest->credentials()`;
 
 ## Router
 
