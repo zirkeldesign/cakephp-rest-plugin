@@ -4,16 +4,11 @@
 * 	
 * 	@author Jonathan Dalrymple
 */
-
-App::import('Helpers','Xml');
-
 class XmlView extends View {
-	var $response = '';
-	var $helper;
+	public $response = '';
 	
-	function render ($action = null, $layout = null, $file = null) {
+	public function render ($action = null, $layout = null, $file = null) {
 		if (array_key_exists('response', $this->viewVars)){
-			
 			//As a prep we want to reindex numerically index arrays to allow for proper elements
 			//ie moods->mood->rowData instead of moods->row,row
 			$this->encode($this->viewVars['response']);
@@ -23,12 +18,12 @@ class XmlView extends View {
 			
 			header('Content-Type: text/xml');
 			
-			return sprintf('<%s>%s</%s>',$rootTag, $this->response, $rootTag);
+			return sprintf('<%s>%s</%s>', $rootTag, $this->response, $rootTag);
 			//return $this->helper->elem('root',null, $this->viewVars['response'] );
 		}
 	}
 	
-	function encode ($response) {
+	public function encode ($response) {
 		foreach ($response as $key => $val) {
 			//starting tag
 			if (!is_numeric($key)) {
@@ -37,7 +32,7 @@ class XmlView extends View {
 			//Another array
 			if (is_array($val)){
 				//Handle non-associative arrays
-				if ($this->is_numerically_indexed_array($val)) {
+				if ($this->isNumericallyIndexedArray($val)) {
 					foreach ($val as $item) {
 						
 						$tag = Inflector::singularize($key);
@@ -66,9 +61,9 @@ class XmlView extends View {
 	* 
 	* @return Boolean True or False depending on the makeup of the array index
 	*/
-	function is_numerically_indexed_array ($arr) {
+	public function isNumericallyIndexedArray ($arr) {
 		foreach ($arr as $key => $val) {
-			if(!is_numeric($key)) {
+			if (!is_numeric($key)) {
 				return false;
 			}
 		}

@@ -248,7 +248,7 @@ Class RestComponent extends Object {
 			return null;
 		}
 		$keys = array_keys($array);
-		foreach($keys as $key) {
+		foreach ($keys as $key) {
 			if (!is_numeric($key)) {
 				return false;
 			}
@@ -334,7 +334,7 @@ Class RestComponent extends Object {
 	 *
 	 * @return object
 	 */
-	public function RestLog() {
+	public function RestLog () {
 		if (!$this->_RestLog) {
 			$this->_RestLog = ClassRegistry::init($this->_settings['log']['model']);
 		}
@@ -352,7 +352,7 @@ Class RestComponent extends Object {
 	 *
 	 * @return boolean
 	 */
-	public function log($key, $val = null) {
+	public function log ($key, $val = null) {
 		// Write log
 		if ($key === true && func_num_args() === 1) {
 			if (!@$this->_settings['log']['model']) {
@@ -398,7 +398,7 @@ Class RestComponent extends Object {
 	 *
 	 * @return <type>
 	 */
-	public function credentials($set = false) {
+	public function credentials ($set = false) {
 		// Return full credentials
 		if ($set === false) {
 			return $this->_credentials;
@@ -452,7 +452,7 @@ Class RestComponent extends Object {
 	 *
 	 * @return array
 	 */
-	public function controllers($cached = true) {
+	public function controllers ($cached = true) {
 		$ckey = sprintf('%s.%s', __CLASS__, __FUNCTION__);
 
 		if (!$cached || !($restControllers = Cache::read($ckey))) {
@@ -508,7 +508,7 @@ Class RestComponent extends Object {
 	 *
 	 * @return <type>
 	 */
-	public function headers($ext = false) {
+	public function headers ($ext = false) {
 		if (!$ext) {
 			$ext = $this->Controller->params['url']['ext'];
 		}
@@ -541,7 +541,7 @@ Class RestComponent extends Object {
 		}
 	}
 
-	public function isActive() {
+	public function isActive () {
 		static $isActive;
 		if (!isset($isActive)) {
 			$isActive = in_array($this->Controller->params['url']['ext'],
@@ -550,19 +550,19 @@ Class RestComponent extends Object {
 		return $isActive;
 	}
 
-	public function error($format, $arg1 = null, $arg2 = null) {
+	public function error ($format, $arg1 = null, $arg2 = null) {
 		$args = func_get_args();
 		if (count($args) > 1) $format = vsprintf($format, $args);
 		$this->_feedback[__FUNCTION__][] = $format;
 		return false;
 	}
-	public function info($format, $arg1 = null, $arg2 = null) {
+	public function info ($format, $arg1 = null, $arg2 = null) {
 		$args = func_get_args();
 		if (count($args) > 1) $format = vsprintf($format, $args);
 		$this->_feedback[__FUNCTION__][] = $format;
 		return true;
 	}
-	public function warning($format, $arg1 = null, $arg2 = null) {
+	public function warning ($format, $arg1 = null, $arg2 = null) {
 		$args = func_get_args();
 		if (count($args) > 1) $format = vsprintf($format, $args);
 		$this->_feedback[__FUNCTION__][] = $format;
@@ -576,7 +576,7 @@ Class RestComponent extends Object {
 	 *
 	 * @return array
 	 */
-	public function getFeedBack($format = false) {
+	public function getFeedBack ($format = false) {
 		if (!$format) {
 			return $this->_feedback;
 		}
@@ -602,7 +602,7 @@ Class RestComponent extends Object {
 	 *
 	 * @return array
 	 */
-	public function inject($take, $viewVars) {
+	public function inject ($take, $viewVars) {
 		$data = array();
 		foreach ($take as $path=>$dest) {
 			if (is_numeric($path)) {
@@ -622,7 +622,7 @@ Class RestComponent extends Object {
 	 *
 	 * @return array
 	 */
-	public function response($data = array()) {
+	public function response ($data = array()) {
 		$feedback   = $this->getFeedBack(true);
 
 		$serverKeys = array_flip(array(
@@ -688,7 +688,7 @@ Class RestComponent extends Object {
 	 * Should be called by Controller->redirect to dump
 	 * an error & stop further execution.
 	 */
-	public function abort($params = array(), $data = array()) {
+	public function abort ($params = array(), $data = array()) {
 		if (is_string($params)) {
 			$code  = '403';
 			$error = $params;

@@ -6,10 +6,8 @@
  * @url http://blog.cakephp-brasil.org/2008/09/11/trabalhando-com-json-no-cakephp-12/ 
  * @licence MIT 
  */ 
-
 class JsonView extends View { 
-	function render ($action = null, $layout = null, $file = null) {
-
+	public function render ($action = null, $layout = null, $file = null) {
 		if (!isset($this->viewVars['response'])) { 
 			return '[]'; //parent::render($action, $layout, $file);
 		}
@@ -21,7 +19,7 @@ class JsonView extends View {
 		return 'null';
 	}
 
-	function renderJson($content) {
+	public function renderJson ($content) {
 		//header('Content-type: application/json');
 		if (function_exists('json_encode')) {
 			// PHP 5.2+
@@ -35,7 +33,7 @@ class JsonView extends View {
 	}
 
 	// Adapted from http://www.php.net/manual/en/function.json-encode.php#82904. Author: Steve (30-Apr-2008 05:35)
-	function encode ($response) {
+	public function encode ($response) {
 		if (is_null($response)) {
 			return 'null';
 		}
@@ -77,5 +75,4 @@ class JsonView extends View {
 			return '{' . join(',', $result) . '}';
 		}
 	}
-
 }
