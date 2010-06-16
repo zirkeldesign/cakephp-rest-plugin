@@ -215,6 +215,37 @@ Now, inside your controller these variables will be available by calling
 This plugin only handles the parsing of the header, and passes the info on to your app.
 So login anyone with e.g. `$this->Auth->login()` and the information you retrieved from `$this->Rest->credentials()`;
 
+Example:
+
+    public function beforeFilter () {
+		if (!$this->Auth->user()) {
+			// Try to login user via REST
+			if ($this->Rest->isActive()) {
+				$this->Auth->autoRedirect = false;
+				$data = array(
+				    $this->Auth->userModel => array(
+				        'username' => $credentials['username'],
+				        'password' => $credentials['password'],
+				    ),
+				);
+				$data = LiveUser::hashPasswords($data);
+				if (!$this->Auth->login($data)) {
+				    $msg = sprintf('Unable to log you in with the supplied credentials. ');
+				    return $this->Rest->abort(array('status' => '403', 'error' => $msg));
+				}
+			
+		        // Additionally Check API key
+		        if (LiveUser::apikey($credentials) !== $credentials['apikey']) {
+		            $this->Auth->logout();
+		            $msg = sprintf('Invalid API key: "%s"', $credentials['apikey']);
+		            return $this->Rest->abort(array('status' => '403', 'error' => $msg));
+		        }
+			}
+		}
+		parent::beforeFilter();
+	}
+	
+
 ## Router
 
     // Add an element for each controller that you want to open up
