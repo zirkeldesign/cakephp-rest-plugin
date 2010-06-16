@@ -678,10 +678,10 @@ Class RestComponent extends Object {
 		return $response;
 	}
 
-	public function encode ($data) {
-		$className = ucwords($this->Controller->params['url']['ext']).'View';
-		$View = ClassRegistry::init($className);
-		return $View->encode($data);
+	public function encode ($response) {
+		$className = Inflector::camelize($this->Controller->params['url']['ext'] . '_view');
+		$View      = ClassRegistry::init($className);
+		return $View->encode($response);
 	}
 
 	/**
@@ -726,5 +726,4 @@ Class RestComponent extends Object {
 		$this->shutdown($this->Controller);
 		die($encoded);
 	}
-
 }

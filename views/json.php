@@ -8,30 +8,16 @@
  */ 
 
 class JsonView extends View { 
-
-	function render($action = null, $layout = null, $file = null) {
+	function render ($action = null, $layout = null, $file = null) {
 
 		if (!isset($this->viewVars['response'])) { 
-			return "[]";//parent::render($action, $layout, $file);
+			return '[]'; //parent::render($action, $layout, $file);
 		}
 	
-		if ( array_key_exists('response', $this->viewVars )) {
+		if (array_key_exists('response', $this->viewVars)) {
 			return $this->renderJson($this->viewVars['response']);
 		}
 
-/*
-		if (is_array($vars)) {
-			$jsonVars = array();
-			foreach ($vars as $var) {
-				if (isset($this->viewVars[$var])) {
-					$jsonVars[$var] = $this->viewVars[$var];
-				} else {
-					$jsonVars[$var] = null;
-				}
-			}
-			return $this->renderJson($jsonVars);
-		}
-*/
 		return 'null';
 	}
 
@@ -93,4 +79,3 @@ class JsonView extends View {
 	}
 
 }
-?>
