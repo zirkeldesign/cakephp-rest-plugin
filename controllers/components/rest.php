@@ -1,4 +1,32 @@
 <?php
+if (!function_exists('pr')) {
+	/**
+	 * Shortcut function for quickly debugging data.
+	 *
+	 * @param mixed $arr
+	 */
+    function pr($arr) {
+		return debug($arr);
+		// or:
+        if (is_array($arr) && count($arr)) {
+            print_r($arr);
+        } else {
+            var_dump($arr);
+        }
+        echo "\n";
+    }
+}
+if (!function_exists('prd')) {
+	/**
+	 * Shortcut function for quickly debugging data, then dying.
+	 *
+	 * @param mixed $arr
+	 */
+    function prd($arr) {
+        pr($arr);
+        die();
+    }
+}
 Class RestComponent extends Object {
 	public $codes = array(
 		200 => 'OK',
@@ -23,7 +51,6 @@ Class RestComponent extends Object {
 
 	protected $_RestLog;
 	protected $_logData = array();
-	protected $_activeHelper = false;
 	protected $_feedback = array();
 	protected $_credentials = array();
 
@@ -79,7 +106,7 @@ Class RestComponent extends Object {
 
 		// Control Debug First
 		$this->_settings['debug'] = (int)$this->_settings['debug'];
-		Configure::write('debug', $this->_settings['debug']);
+		#Configure::write('debug', $this->_settings['debug']);
 		$this->Controller->set('debug', $this->_settings['debug']);
 
 		if (!$this->isActive()) {
@@ -173,11 +200,11 @@ Class RestComponent extends Object {
 
 		// Rate Limit
 		$credentials = $this->credentials();
-		$class	   = @$credentials['class'];
+		$class	     = @$credentials['class'];
 		if (!$class) {
 			$this->warning('Unable to establish class');
 		} else {
-			list ($time, $max) = $this->_settings['ratelimit']['classlimits'][$class];
+			list($time, $max) = $this->_settings['ratelimit']['classlimits'][$class];
 
 			$cbMax = $this->cbRestRatelimitMax($credentials);
 			if ($cbMax) {
@@ -199,19 +226,7 @@ Class RestComponent extends Object {
 		if ($this->_settings['viewsFromPlugin']) {
 			// Setup the controller so it can use
 			// the view inside this plugin
-
-//			$this->Controller->layout   = false;
-//			$this->Controller->plugin   = 'rest';
-//			$this->Controller->viewPath = 'generic' . DS . $this->Controller->params['url']['ext'];
-
-			switch( $this->Controller->params['url']['ext'] ){
-				   case 'json':
-						   $this->Controller->view		 = 'Rest.json';
-						   break;
-				   case 'xml':
-						   $this->Controller->view		 = 'Rest.xml';
-						   break;
-			}
+			$this->Controller->view = 'Rest.' . $this->View(false);
 		}
 	}
 
@@ -524,7 +539,6 @@ Class RestComponent extends Object {
 					$this->Controller->RequestHandler->setContent('json', 'text/javascript');
 					$this->Controller->RequestHandler->respondAs('json');
 				}
-				$this->_activeHelper = 'RestJson';
 				break;
 			case 'xml':
 				if ($this->_settings['debug'] < 3) {
@@ -532,11 +546,12 @@ Class RestComponent extends Object {
 					$this->Controller->RequestHandler->setContent('xml', 'text/xml');
 					$this->Controller->RequestHandler->respondAs('xml');
 				}
-				$this->_activeHelper = 'RestXml';
 				break;
 			default:
-				return $this->abort(sprintf('Unsupported extension: "%s"',
-						$this->Controller->params['url']['ext']), E_USER_ERROR);
+				return $this->abort(
+					sprintf('Unsupported extension: "%s"', $ext),
+					E_USER_ERROR
+				);
 				break;
 		}
 	}
@@ -544,8 +559,10 @@ Class RestComponent extends Object {
 	public function isActive () {
 		static $isActive;
 		if (!isset($isActive)) {
-			$isActive = in_array($this->Controller->params['url']['ext'],
-				$this->_settings['extensions']);
+			$isActive = in_array(
+				$this->Controller->params['url']['ext'],
+				$this->_settings['extensions']
+			);
 		}
 		return $isActive;
 	}
@@ -604,7 +621,7 @@ Class RestComponent extends Object {
 	 */
 	public function inject ($take, $viewVars) {
 		$data = array();
-		foreach ($take as $path=>$dest) {
+		foreach ($take as $path => $dest) {
 			if (is_numeric($path)) {
 				$path = $dest;
 			}
@@ -663,11 +680,11 @@ Class RestComponent extends Object {
 			'data' => $data,
 		);
 
-		foreach($this->_settings['auth']['fields'] as $field) {
+		foreach ($this->_settings['auth']['fields'] as $field) {
 			$response['meta']['credentials'][$field] = $this->credentials($field);
 		}
 
-		if (@$this->_settings['log']['dump']) {
+		if (!empty($this->_settings['log']['dump'])) {
 			$this->log(array(
 				'meta' => json_encode($response['meta']),
 				'data_in' => json_encode($this->postData),
@@ -678,10 +695,20 @@ Class RestComponent extends Object {
 		return $response;
 	}
 
-	public function encode ($response) {
-		$className = Inflector::camelize($this->Controller->params['url']['ext'] . '_view');
+	public function View ($object = true) {
+		if (!$this->isActive()) {
+			return $this->abort('Rest not activated. Maybe try correct extension.');
+		}
+
+		$base = Inflector::camelize($this->Controller->params['url']['ext']);
+		if (!$object) {
+			return $base;
+		}
+
+		$className = $base .'View';
 		$View      = ClassRegistry::init($className);
-		return $View->encode($response);
+		
+		return $View;
 	}
 
 	/**
@@ -715,7 +742,7 @@ Class RestComponent extends Object {
 		$this->Controller->header(sprintf('HTTP/1.1 %s %s', $code, $this->codes[$code]));
 
 		$this->headers();
-		$encoded = $this->encode($this->response($data));
+		$encoded = $this->View()->encode($this->response($data));
 
 		// Die.. ugly. but very safe. which is what we need
 		// or all Auth & Acl work could be circumvented

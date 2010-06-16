@@ -11,7 +11,6 @@ class JsonView extends View {
 		if (!isset($this->viewVars['response'])) { 
 			return '[]'; //parent::render($action, $layout, $file);
 		}
-	
 		if (array_key_exists('response', $this->viewVars)) {
 			return $this->renderJson($this->viewVars['response']);
 		}
