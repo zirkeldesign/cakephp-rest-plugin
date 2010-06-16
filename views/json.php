@@ -18,22 +18,16 @@ class JsonView extends View {
 			return false;
 		}
 
-		return $this->renderJson($this->viewVars['response']);
-	}
-
-	public function renderJson ($content) {
-		if (function_exists('json_encode')) {
-			// PHP 5.2+
-			$out = json_encode($content);
-		} else {
-			// For PHP 4 until PHP 5.1
-			$out = $this->encode($content);
-		}
-		return $out;
+		return $this->encode($this->viewVars['response']);
 	}
 
 	// Adapted from http://www.php.net/manual/en/function.json-encode.php#82904. Author: Steve (30-Apr-2008 05:35)
 	public function encode ($response) {
+		if (function_exists('json_encode')) {
+			// PHP 5.2+
+			return json_encode($response);
+		}
+
 		if (is_null($response)) {
 			return 'null';
 		}

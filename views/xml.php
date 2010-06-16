@@ -3,6 +3,7 @@
  * View Class for XML
  *
  * @author Jonathan Dalrymple
+ * @author kvz
  */
 class XmlView extends View {
 	public $response = '';
@@ -16,14 +17,10 @@ class XmlView extends View {
 			return false;
 		}
 
-		$rootTag = Inflector::tableize($this->params['controller']) . '_response';
-
-		$this->encode(array($rootTag => $this->viewVars['response']));
-		
-		return $this->_xmlCleanup($this->response);
+		return $this->encode($this->viewVars['response']);
 	}
 	
-	protected function _xmlCleanup ($xml) {
+	protected function _xmlCleanup ($xml, $header = null) {
 		// Indentation
 		$doc = new DOMDocument('1.0');
 		$doc->preserveWhiteSpace = false;
@@ -37,6 +34,14 @@ class XmlView extends View {
 	}
 
 	public function encode ($response) {
+		$rootTag = Inflector::tableize($this->params['controller']) . '_response';
+
+		$this->_encode(array($rootTag => $response));
+
+		return $this->_xmlCleanup($this->response);
+	}
+
+	protected function _encode ($response) {
 		if (!is_array($response)) {
 			$this->response .= $response;
 			return;
@@ -57,12 +62,12 @@ class XmlView extends View {
 						
 						$this->response .= sprintf("<%s>", $tag);
 						
-						$this->encode($item);
+						$this->_encode($item);
 						
 						$this->response .= sprintf("</%s>", $tag);
 					}
 				} else {
-					$this->encode($val);
+					$this->_encode($val);
 				}
 			} elseif(is_string($val)) {
 				$this->response .= $val;

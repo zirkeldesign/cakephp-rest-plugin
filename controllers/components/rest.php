@@ -213,7 +213,7 @@ Class RestComponent extends Object {
 
 			if (true !== ($count = $this->ratelimit($time, $max))) {
 				$msg = sprintf(
-					'You have reached your ratelimit (%s >= %s requests in %s)',
+					'You have reached your ratelimit (%s is more than the allowed %s requests in %s)',
 					$count,
 					$max,
 					str_replace('-', '', $time)
@@ -725,6 +725,10 @@ Class RestComponent extends Object {
 		}
 
 		$View      = ClassRegistry::init('Rest.'.$className);
+		if (empty($View->params)) {
+			$View->params = $this->Controller->params;
+		}
+
 		
 		return $View;
 	}
