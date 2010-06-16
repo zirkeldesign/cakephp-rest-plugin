@@ -6,7 +6,6 @@
  */
 class XmlView extends View {
 	public $response = '';
-	public $head     = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
 	
 	public function render ($action = null, $layout = null, $file = null) {
 		if (!array_key_exists('response', $this->viewVars)) {
@@ -24,20 +23,17 @@ class XmlView extends View {
 		return $this->_xmlCleanup($this->response);
 	}
 	
-	protected function _xmlCleanup ($xml, $head = null) {
-		if ($head === null) {
-			$head = $this->head;
-		}
-
+	protected function _xmlCleanup ($xml) {
 		// Indentation
 		$doc = new DOMDocument('1.0');
 		$doc->preserveWhiteSpace = false;
 		if (!$doc->loadXML($xml)) {
 			trigger_error('Invalid XML: '.$xml, E_USER_ERROR);
 		}
+		$doc->encoding = 'utf-8';
 		$doc->formatOutput = true;
 
-		return $head . $doc->saveXML();
+		return $doc->saveXML();
 	}
 
 	public function encode ($response) {
