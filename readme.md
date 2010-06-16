@@ -20,12 +20,12 @@ For best results, 2 changes to your application have to be made.
 Based on:
 
 - [Priminister's API presentation during CakeFest #03, Berlin][1]
-- [Forked XML Serialization helper by rodrigorm][2]
+- [The help of Jonathan Dalrymple][2]
 - [REST documentation][3]
 - [CakeDC article][4]
 
   [1]: http://www.cake-toppings.com/2009/07/15/cakefest-berlin/
-  [2]: http://github.com/rodrigorm/rest
+  [2]: http://github.com/veritech
   [3]: http://book.cakephp.org/view/476/REST
   [4]: http://cakedc.com/eng/developer/mark_story/2008/12/02/nate-abele-restful-cakephp
 
@@ -38,12 +38,12 @@ I held a presentation on this plugin during the first Dutch CakePHP meetup:
 
 Still in testing. Todo:
 
- - XML (now only JSON is supported)
  - Tests
  - Documentation
  - The RestLog model that tracks usage should focus more on IP for rate-limiting than account info. This is mostly to defend against denial of server & brute force attempts
  - Cake 1.3 support
- - Maybe some Refactoring. This is pretty much the first attempt at a working plugin
+ V Maybe some Refactoring. This is pretty much the first attempt at a working plugin
+ V XML (now only JSON is supported) - Done (thx to Jonathan Dalrymple)
 
 License: BSD-style
 

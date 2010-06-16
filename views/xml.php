@@ -11,35 +11,51 @@ class XmlView extends View {
 		if (array_key_exists('response', $this->viewVars)){
 			//As a prep we want to reindex numerically index arrays to allow for proper elements
 			//ie moods->mood->rowData instead of moods->row,row
-			$this->encode($this->viewVars['response']);
-			
-			//firecake($this->params);
+
 			$rootTag = $this->params['controller'] . 'Response';
 			
-			return sprintf('<%s>%s</%s>', $rootTag, $this->response, $rootTag);
-			//return $this->helper->elem('root',null, $this->viewVars['response'] );
+
+			$this->encode(array($rootTag => $this->viewVars['response']));
+			
+			return $this->_xmlCleanup($this->response);
 		}
 	}
 	
+	protected function _xmlCleanup($xml, $header = null) {
+		if ($header === null) {
+			$header  = '<?xml version="1.0" encoding="utf-8"?>' . "\n";
+		}
+
+		// Indentation
+		$doc = new DOMDocument('1.0');
+		$doc->preserveWhiteSpace = false;
+		if (!$doc->loadXML($xml)) {
+			trigger_error('Invalid XML: '.$xml, E_USER_ERROR);
+		}
+		$doc->formatOutput = true;
+
+		return $header . $doc->saveXML();
+	}
+
 	public function encode ($response) {
 		foreach ($response as $key => $val) {
-			//starting tag
+			// starting tag
 			if (!is_numeric($key)) {
-				$this->response .= sprintf('<%s>',$key);
+				$this->response .= sprintf("<%s>", $key);
 			}
-			//Another array
+			// Another array
 			if (is_array($val)){
-				//Handle non-associative arrays
+				// Handle non-associative arrays
 				if ($this->isNumericallyIndexedArray($val)) {
 					foreach ($val as $item) {
 						
 						$tag = Inflector::singularize($key);
 						
-						$this->response .= sprintf("<%s>", $tag );
+						$this->response .= sprintf("<%s>", $tag);
 						
 						$this->encode($item);
 						
-						$this->response .= sprintf("</%s>", $tag );
+						$this->response .= sprintf("</%s>", $tag);
 					}
 				} else {
 					$this->encode( $val );
@@ -47,9 +63,9 @@ class XmlView extends View {
 			} elseif(is_string($val)) {
 				$this->response .= $val;
 			}
-			//Draw closing tag
+			// Draw closing tag
 			if (!is_numeric($key)) {
-				$this->response .= sprintf('</%s>',$key);
+				$this->response .= sprintf("</%s>", $key);
 			}
 		}
 	}
@@ -65,7 +81,6 @@ class XmlView extends View {
 				return false;
 			}
 		}
-		
 		return true;
 	}
 }
