@@ -125,6 +125,22 @@ Beware that you can no longer use ->render() yourself
 and makes them available in the resulting XML or JSON under
 the name you specify in the value part.
 
+Here's a more simple example of how you would use the viewVar `tweets` **as-is**:
+
+    public $components = array (
+        'Rest.Rest' => array(
+            'index' => array(
+                'extract' => array('tweets'),
+            ),
+        ),
+    );
+
+    public function index() {
+        $tweets = $this->_getTweets();
+        $this->set(compact('tweets'));
+    }
+
+
 ## Authorization
 
 Check the HTTP header as shown here: http://docs.amazonwebservices.com/AmazonS3/2006-03-01/index.html?RESTAuthentication.html

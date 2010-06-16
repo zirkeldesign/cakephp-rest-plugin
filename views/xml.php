@@ -14,7 +14,6 @@ class XmlView extends View {
 
 			$rootTag = $this->params['controller'] . 'Response';
 			
-
 			$this->encode(array($rootTag => $this->viewVars['response']));
 			
 			return $this->_xmlCleanup($this->response);
@@ -38,6 +37,11 @@ class XmlView extends View {
 	}
 
 	public function encode ($response) {
+		if (!is_array($response)) {
+			$this->response .= $response;
+			return;
+		}
+
 		foreach ($response as $key => $val) {
 			// starting tag
 			if (!is_numeric($key)) {
@@ -48,8 +52,8 @@ class XmlView extends View {
 				// Handle non-associative arrays
 				if ($this->isNumericallyIndexedArray($val)) {
 					foreach ($val as $item) {
-						
-						$tag = Inflector::singularize($key);
+						#$tag = Inflector::singularize($key);
+						$tag = 'item';
 						
 						$this->response .= sprintf("<%s>", $tag);
 						
@@ -58,7 +62,7 @@ class XmlView extends View {
 						$this->response .= sprintf("</%s>", $tag);
 					}
 				} else {
-					$this->encode( $val );
+					$this->encode($val);
 				}
 			} elseif(is_string($val)) {
 				$this->response .= $val;
