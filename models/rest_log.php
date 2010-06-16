@@ -2,4 +2,3 @@
 class RestLog extends RestAppModel {
 
 }
-?>

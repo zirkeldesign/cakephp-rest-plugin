@@ -21,19 +21,19 @@ App::import('Controller', 'AppController');
  *
  */
 class MockRestComponent extends RestComponent {
-    /**
-     * Let's not really set headers in testmode
-     *
-     * @param <type> $ext
-     */
-    public function headers($ext = false) {
-        return null;
-    }
+	/**
+	 * Let's not really set headers in testmode
+	 *
+	 * @param <type> $ext
+	 */
+	public function headers($ext = false) {
+		return null;
+	}
 }
 
 class TestRestController extends AppController {
 	public $components = array('RequestHandler', 'Rest');
-    public $uses = array();
+	public $uses = array();
 }
 
 /**
@@ -45,35 +45,35 @@ class RestComponentTestCase extends CakeTestCase {
 	public function startTest() {
 		$this->Rest = new MockRestComponent();
 		$this->Controller = new TestRestController();
-        $this->Controller->constructClasses();
-        $this->Controller->params['url']['ext'] = 'json';
+		$this->Controller->constructClasses();
+		$this->Controller->params['url']['ext'] = 'json';
 
 	}
 
 	public function testInitialize() {
 		$settings = array(
-            'debug' => 2,
-            'extensions' => array('xml', 'json'),
-            'view' => array(
-                'extract' => array('server.DnsDomain' => 'dns_domains.0'),
-            ),
-            'index' => array(
-                'extract' => array('rows.{n}.DnsDomain' => 'dns_domains'),
-            ),
+			'debug' => 2,
+			'extensions' => array('xml', 'json'),
+			'view' => array(
+				'extract' => array('server.DnsDomain' => 'dns_domains.0'),
+			),
+			'index' => array(
+				'extract' => array('rows.{n}.DnsDomain' => 'dns_domains'),
+			),
 		);
 		$this->Rest->initialize($this->Controller, $settings);
 
 		$this->assertEqual($this->Controller->viewVars['debug'], $settings['debug']);
 		$this->assertEqual(Configure::read('debug'), $settings['debug']);
 	}
-    
+
 	public function testIsActive() {
 		$this->assertTrue($this->Rest->isActive());
-    }
-    
-    public function testControllers() {
-        //prd($this->Rest->controllers());
-    }
+	}
+
+	public function testControllers() {
+		//prd($this->Rest->controllers());
+	}
 
 	public function endTest() {
 		#$this->Rest->clearCache();
