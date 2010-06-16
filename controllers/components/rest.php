@@ -400,7 +400,7 @@ Class RestComponent extends Object {
 
 		// Multiple values: recurse
 		if (is_array($key)) {
-			foreach($key as $k=>$v) {
+			foreach ($key as $k=>$v) {
 				$this->log($k, $v);
 			}
 			return true;
@@ -544,7 +544,7 @@ Class RestComponent extends Object {
 
 		// Don't know why,  but RequestHandler isn't settings
 		// Content-Type right;  so using header() for now instead
-		switch($ext) {
+		switch ($ext) {
 			case 'json':
 				// text/javascript
 				// application/json
