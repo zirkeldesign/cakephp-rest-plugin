@@ -106,7 +106,7 @@ Class RestComponent extends Object {
 
 		// Control Debug First
 		$this->_settings['debug'] = (int)$this->_settings['debug'];
-		#Configure::write('debug', $this->_settings['debug']);
+		Configure::write('debug', $this->_settings['debug']);
 		$this->Controller->set('debug', $this->_settings['debug']);
 
 		if (!$this->isActive()) {
@@ -653,7 +653,7 @@ Class RestComponent extends Object {
 			'SERVER_PROTOCOL',
 		));
 		$server = array_intersect_key($_SERVER, $serverKeys);
-		foreach($server as $k=>$v) {
+		foreach ($server as $k=>$v) {
 			if ($k === ($lc = strtolower($k))) {
 				continue;
 			}
@@ -695,18 +695,36 @@ Class RestComponent extends Object {
 		return $response;
 	}
 
-	public function View ($object = true) {
+	/**
+	 * Returns either string or reference to active View object
+	 *
+	 * @param boolean $object
+	 * @param string  $ext
+	 *
+	 * @return mixed object or string
+	 */
+	public function View ($object = true, $ext = null) {
 		if (!$this->isActive()) {
 			return $this->abort('Rest not activated. Maybe try correct extension.');
 		}
 
-		$base = Inflector::camelize($this->Controller->params['url']['ext']);
+		if ($ext === null) {
+			$ext = $this->Controller->params['url']['ext'];
+		}
+
+		$base = Inflector::camelize($ext);
 		if (!$object) {
 			return $base;
 		}
 
 		$className = $base .'View';
-		$View      = ClassRegistry::init($className);
+
+		if (!class_exists($className)) {
+			$pluginRoot = dirname(dirname(dirname(__FILE__)));
+			require_once $pluginRoot . '/views/' . $ext . '.php';
+		}
+
+		$View      = ClassRegistry::init('Rest.'.$className);
 		
 		return $View;
 	}
@@ -714,6 +732,9 @@ Class RestComponent extends Object {
 	/**
 	 * Should be called by Controller->redirect to dump
 	 * an error & stop further execution.
+	 *
+	 * @param <type> $params
+	 * @param <type> $data
 	 */
 	public function abort ($params = array(), $data = array()) {
 		if (is_string($params)) {
