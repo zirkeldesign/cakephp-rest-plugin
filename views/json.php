@@ -20,7 +20,6 @@ class JsonView extends View {
 	}
 
 	public function renderJson ($content) {
-		//header('Content-type: application/json');
 		if (function_exists('json_encode')) {
 			// PHP 5.2+
 			$out = json_encode($content);
@@ -28,7 +27,6 @@ class JsonView extends View {
 			// For PHP 4 until PHP 5.1
 			$out = $this->encode($content);
 		}
-		Configure::write('debug', 0); // Omit time in end of view
 		return $out;
 	}
 

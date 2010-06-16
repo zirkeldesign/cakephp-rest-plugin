@@ -16,8 +16,6 @@ class XmlView extends View {
 			//firecake($this->params);
 			$rootTag = $this->params['controller'] . 'Response';
 			
-			header('Content-Type: text/xml');
-			
 			return sprintf('<%s>%s</%s>', $rootTag, $this->response, $rootTag);
 			//return $this->helper->elem('root',null, $this->viewVars['response'] );
 		}
