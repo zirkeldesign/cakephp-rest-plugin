@@ -12,7 +12,7 @@ class XmlView extends View {
 			//As a prep we want to reindex numerically index arrays to allow for proper elements
 			//ie moods->mood->rowData instead of moods->row,row
 
-			$rootTag = $this->params['controller'] . 'Response';
+			$rootTag = Inflector::tableize($this->params['controller']) . '_response';
 			
 			$this->encode(array($rootTag => $this->viewVars['response']));
 			
