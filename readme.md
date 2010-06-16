@@ -1,10 +1,21 @@
 CakePHP REST Plugin takes whatever your existing controller actions gather
-in viewvars, reformats it in json, and outputs it to the client.
+in viewvars, reformats it in json or xml, and outputs it to the client.
 Be cause you hook it into existing actions, you only have to write your
 features once, and this plugin will just unlock them as API.
-The plugin know's it's being called by looking at the extension in the url: .json.
+The plugin knows it's being called by looking at the extension in the url: .json or .xml.
 
-The reformatting can even change the structure of your existing viewvars by
+So if you've already coded:
+
+ - /servers/reboot/2
+
+You can have
+
+- /servers/reboot/2.json
+- /servers/reboot/2.xml
+
+up & running in no time.
+
+The reformatting of your vars can even change the structure of your existing viewvars by
 using bi-directional xpaths. So you can extract info using an xpath, and
 it will be written into API json with another xpath. If this doesn't make any
 sense, look at the examples.
@@ -36,14 +47,15 @@ I held a presentation on this plugin during the first Dutch CakePHP meetup:
   [5]: http://www.slideshare.net/kevinvz/rest-presentation-2901872
 
 
-Still in testing. Todo:
+Todo:
 
- - Tests
- - Documentation
- - The RestLog model that tracks usage should focus more on IP for rate-limiting than account info. This is mostly to defend against denial of server & brute force attempts
- - Cake 1.3 support
- V Maybe some Refactoring. This is pretty much the first attempt at a working plugin
- V XML (now only JSON is supported) - Done (thx to Jonathan Dalrymple)
+ - More testing
+ - The RestLog model that tracks usage should focus more on IP for rate-limiting 
+   than account info. This is mostly to defend against denial of server & brute
+   force attempts
+ - Cake 1.3 support?
+ - DONE - Maybe some Refactoring. This is pretty much the first attempt at a working plugin
+ - DONE (thx to Jonathan Dalrymple) - XML (now only JSON is supported)
 
 License: BSD-style
 
@@ -68,6 +80,7 @@ Do you run Apache? Make your `app/webroot/.htaccess` look like so:
         RewriteCond %{REQUEST_FILENAME} !-f
         RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
 
+	    # Adds AUTH support to Rest Plugin:
         RewriteRule .* - [env=HTTP_AUTHORIZATION:%{HTTP:Authorization},last]
     </IfModule>
 
@@ -127,7 +140,7 @@ the name you specify in the value part.
 
 Here's a more simple example of how you would use the viewVar `tweets` **as-is**:
 
-    public $components = array (
+	public $components = array (
         'Rest.Rest' => array(
             'index' => array(
                 'extract' => array('tweets'),
@@ -140,6 +153,51 @@ Here's a more simple example of how you would use the viewVar `tweets` **as-is**
         $this->set(compact('tweets'));
     }
 
+And when asked for the xml version, Rest Plugin would return this to your clients:
+
+	<?xml version="1.0" encoding="utf-8"?>
+	<tweets_response>
+	  <meta>
+		<status>ok</status>
+		<feedback>
+		  <item>
+			<message>ok</message>
+			<level>info</level>
+		  </item>
+		</feedback>
+		<request>
+		  <request_method>GET</request_method>
+		  <request_uri>/tweets/index.xml</request_uri>
+		  <server_protocol>HTTP/1.1</server_protocol>
+		  <remote_addr>123.123.123.123</remote_addr>
+		  <server_addr>123.123.123.123</server_addr>
+		  <http_host>www.example.com</http_host>
+		  <http_user_agent>My API Client 1.0</http_user_agent>
+		  <request_time/>
+		</request>
+		<credentials>
+		  <class/>
+		  <apikey/>
+		  <username/>
+		</credentials>
+	  </meta>
+	  <data>
+		<tweets>
+		  <item>
+			<tweet_id>123</tweet_id>
+			<message>looking forward to the finals!</message>
+		  </item>
+		  <item>
+			<tweet_id>123</tweet_id>
+			<message>i need a drink</message>
+		  </item>
+		</tweets>
+	  </data>
+	</tweets_response>
+
+As you can see, the controller name + response is always the root element (for json there is no root element).
+Then the content is divived in `meta` & `data`, and the latter is where your actual viewvars are stored.
+Meta is there to show any information regarding the validity of the request & response.
 
 ## Authorization
 

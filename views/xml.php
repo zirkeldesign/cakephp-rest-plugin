@@ -6,7 +6,7 @@
  */
 class XmlView extends View {
 	public $response = '';
-	public $header   = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
+	public $head     = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
 	
 	public function render ($action = null, $layout = null, $file = null) {
 		if (!array_key_exists('response', $this->viewVars)) {
@@ -24,9 +24,9 @@ class XmlView extends View {
 		return $this->_xmlCleanup($this->response);
 	}
 	
-	protected function _xmlCleanup ($xml, $header = null) {
-		if ($header === null) {
-			$header  = $this->header;
+	protected function _xmlCleanup ($xml, $head = null) {
+		if ($head === null) {
+			$head = $this->head;
 		}
 
 		// Indentation
@@ -37,7 +37,7 @@ class XmlView extends View {
 		}
 		$doc->formatOutput = true;
 
-		return $header . $doc->saveXML();
+		return $head . $doc->saveXML();
 	}
 
 	public function encode ($response) {
