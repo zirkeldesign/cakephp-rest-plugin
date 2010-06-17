@@ -19,11 +19,11 @@ class XmlView extends View {
 		return $this->encode($this->viewVars['response']);
 	}
 
-	public function encode() {
+	public function encode ($response) {
 		require_once dirname(dirname(__FILE__)) . '/libs/BluntXml.php';
 		$this->BluntXml = new BluntXml();
 		return $this->BluntXml->encode(
-			$this->viewVars['response'],
+			$response,
 			Inflector::tableize($this->params['controller']) . '_response'
 		);
 	}
