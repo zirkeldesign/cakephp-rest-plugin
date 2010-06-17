@@ -53,6 +53,7 @@ Class RestComponent extends Object {
 	protected $_logData = array();
 	protected $_feedback = array();
 	protected $_credentials = array();
+	protected $_aborting = false;
 
 	protected $_settings = array(
 		// Component options
@@ -78,6 +79,32 @@ Class RestComponent extends Object {
 				'username' => 'username',
 			),
 		),
+		'exposeVars' => array(
+			'method' => 'get|post|put|delete',
+			'id' => 'true|false',
+		),
+		'defaultVars' => array(
+			'index' => array(
+				'method' => 'get',
+				'id' => false,
+			),
+			'view' => array(
+				'method' => 'get',
+				'id' => true,
+			),
+			'edit' => array(
+				'method' => 'put',
+				'id' => true,
+			),
+			'add' => array(
+				'method' => 'put',
+				'id' => false,
+			),
+			'delete' => array(
+				'method' => 'delete',
+				'id' => true,
+			),
+		),
 		'log' => array(
 			'model' => 'Rest.RestLog',
 			'dump' => true, // Saves entire in + out dumps in log. Also see config/schema/rest_logs.sql
@@ -90,6 +117,7 @@ Class RestComponent extends Object {
 			'identfield' => 'apikey',
 			'ip_limit' => array('-1 hour', 60),  // For those not logged in
 		),
+		'version' => '0.2',
 		'view' => array(
 			'extract' => array(),
 		),
@@ -512,15 +540,38 @@ Class RestComponent extends Object {
 				}
 				$Controller = new $className();
 
-				if (isset($Controller->components['Rest.Rest'])
-					|| in_array('Rest.Rest', $Controller->components)) {
+				if (isset($Controller->components['Rest.Rest']) && is_array($Controller->components['Rest.Rest'])) {
+					$actions = array();
+					foreach ($Controller->components['Rest.Rest'] as $action => $vars) {
+						if (method_exists($Controller, $action)) {
+							$saveVars = array();
+							foreach ($this->_settings['exposeVars'] as $exposeVar => $example) {
+								if (!isset($vars[$exposeVar])) {
+									if (isset($this->_settings['defaultVars'][$action][$exposeVar])) {
+										$saveVars[$exposeVar] = $this->_settings['defaultVars'][$action][$exposeVar];
+									} else {
+										return $this->abort(sprintf(
+											'Rest maintainer needs to map %s to a method using ' .
+											'%s->components->Rest.Rest->%s[\'%s\'] = %s',
+											$action,
+											$className,
+											$action,
+											$exposeVar,
+											$example
+										));
+									}
+								}
+							}
+							$actions[$action] = $saveVars;
+						}
+					}
 
-					$restControllers[] = $controller;
+					$restControllers[$controller] = $actions;
 				}
 				unset($Controller);
 			}
-
-			sort($restControllers);
+			
+			ksort($restControllers);
 
 			if ($cached) {
 				Cache::write($ckey, $restControllers);
@@ -560,12 +611,6 @@ Class RestComponent extends Object {
 					$this->Controller->RequestHandler->setContent('xml', 'text/xml');
 					$this->Controller->RequestHandler->respondAs('xml');
 				}
-				break;
-			default:
-				return $this->abort(
-					sprintf('Unsupported extension: "%s"', $ext),
-					E_USER_ERROR
-				);
 				break;
 		}
 	}
@@ -694,6 +739,10 @@ Class RestComponent extends Object {
 			'data' => $data,
 		);
 
+		if (!empty($this->_settings['version'])) {
+			$response['meta']['version'] = $this->_settings['version'];
+		}
+
 		foreach ($this->_settings['auth']['fields'] as $field) {
 			$response['meta']['credentials'][$field] = $this->credentials($field);
 		}
@@ -757,6 +806,11 @@ Class RestComponent extends Object {
 	 * @param <type> $data
 	 */
 	public function abort ($params = array(), $data = array()) {
+		if ($this->_aborting) {
+			return;
+		}
+		$this->_aborting = true;
+		
 		if (is_string($params)) {
 			$code  = '403';
 			$error = $params;
