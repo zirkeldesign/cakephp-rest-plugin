@@ -533,6 +533,8 @@ Class RestComponent extends Object {
 			// Instantiate all remaining controllers and check components
 			foreach ($controllers as $controller) {
 				$className = $controller.'Controller';
+				#$debug = 'MonitoringServices' === $controller;
+				$debug = false;
 				if (!class_exists($className)) {
 					if (!App::import('Controller', $controller)) {
 						continue;
@@ -542,11 +544,18 @@ Class RestComponent extends Object {
 
 				if (isset($Controller->components['Rest.Rest']) && is_array($Controller->components['Rest.Rest'])) {
 					$actions = array();
+
 					foreach ($Controller->components['Rest.Rest'] as $action => $vars) {
-						if (method_exists($Controller, $action)) {
+						if (substr($action, 0, 1) !== '_' && in_array($action, $Controller->methods)) {
+							#$debug && prd(compact('controller', 'action'));
+							#$debug && prd($this->_settings['exposeVars']);
 							$saveVars = array();
+
+
 							foreach ($this->_settings['exposeVars'] as $exposeVar => $example) {
-								if (!isset($vars[$exposeVar])) {
+								if (isset($vars[$exposeVar])) {
+									$saveVars[$exposeVar] = $vars[$exposeVar];
+								} else {
 									if (isset($this->_settings['defaultVars'][$action][$exposeVar])) {
 										$saveVars[$exposeVar] = $this->_settings['defaultVars'][$action][$exposeVar];
 									} else {
@@ -566,12 +575,14 @@ Class RestComponent extends Object {
 							$actions[$action] = $saveVars;
 						}
 					}
-
+					
 					$restControllers[$controller] = $actions;
 				}
 				unset($Controller);
 			}
-			
+
+			#prd($restControllers);
+
 			ksort($restControllers);
 
 			if ($cached) {
