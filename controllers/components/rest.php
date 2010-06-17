@@ -462,7 +462,7 @@ Class RestComponent extends Object {
 			}
 
 			// Fallback to the mapped key according to authfield settings
-			if (null !== ($val = @$this->_credentials[$this->_settings['auth']['fields'][''.$set]])) {
+			if (null !== ($val = @$this->_credentials[$this->_settings['auth']['fields'][$set]])) {
 				return $val;
 			}
 
@@ -719,7 +719,9 @@ Class RestComponent extends Object {
 	 */
 	public function View ($object = true, $ext = null) {
 		if (!$this->isActive()) {
-			return $this->abort('Rest not activated. Maybe try correct extension.');
+			return $this->abort(
+				'Rest not activated. Maybe try correct extension.'
+			);
 		}
 
 		if ($ext === null) {
@@ -738,7 +740,7 @@ Class RestComponent extends Object {
 			require_once $pluginRoot . '/views/' . $ext . '.php';
 		}
 
-		$View      = ClassRegistry::init('Rest.'.$className);
+		$View = ClassRegistry::init('Rest.'.$className);
 		if (empty($View->params)) {
 			$View->params = $this->Controller->params;
 		}
