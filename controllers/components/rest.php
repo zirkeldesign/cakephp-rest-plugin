@@ -560,7 +560,7 @@ Class RestComponent extends Object {
 										$saveVars[$exposeVar] = $this->_settings['defaultVars'][$action][$exposeVar];
 									} else {
 										return $this->abort(sprintf(
-											'Rest maintainer needs to specify a %s for %s using ' .
+											'Rest maintainer needs to set "%s" for %s using ' .
 											'%s->components->Rest.Rest->%s[\'%s\'] = %s',
 											$exposeVar,
 											$action,
