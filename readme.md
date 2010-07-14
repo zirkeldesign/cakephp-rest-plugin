@@ -126,7 +126,8 @@ Beware that you can no longer use ->render() yourself
                 // Just don't redirect.. Let REST die gracefully
                 // Do set the HTTP code though
                 parent::redirect(null, $status, false);
-                $this->Rest->abort(compact('url', 'status', 'exit'));
+				$redirect = true;
+				$this->Rest->abort(compact('url', 'status', 'exit', 'redirect'));
             }
 
             parent::redirect($url, $status, $exit);

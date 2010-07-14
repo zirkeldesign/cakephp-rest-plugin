@@ -736,7 +736,7 @@ Class RestComponent extends Object {
 		if (empty($data) && !empty($this->postData)) {
 			$data = $this->postData;
 		}
-
+		
 		$status = count(@$this->_feedback['error'])
 			? 'error'
 			: 'ok';
@@ -839,8 +839,12 @@ Class RestComponent extends Object {
 			if (!empty($params['status'])) {
 				$code = $params['status'];
 			}
-			if (!empty($params['status'])) {
+			if (!empty($params['error'])) {
 				$error = $params['error'];
+			}
+
+			if (empty($error) && !empty($params['redirect'])) {
+				$error = 'Attempted redirect blocked by REST';
 			}
 		}
 		if ($error) {
