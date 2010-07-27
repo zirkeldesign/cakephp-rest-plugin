@@ -129,14 +129,13 @@ Class RestComponent extends Object {
 		$this->Controller = $Controller;
 		$this->_settings  = am($this->_settings, $settings);
 
-		// Control Debug First
-		$this->_settings['debug'] = (int)$this->_settings['debug'];
-		Configure::write('debug', $this->_settings['debug']);
-		$this->Controller->set('debug', $this->_settings['debug']);
-
 		if (!$this->isActive()) {
 			return;
 		}
+		// Control Debug
+		$this->_settings['debug'] = (int)$this->_settings['debug'];
+		Configure::write('debug', $this->_settings['debug']);
+		$this->Controller->set('debug', $this->_settings['debug']);
 
 		// Set credentials
 		$this->credentials(true);
