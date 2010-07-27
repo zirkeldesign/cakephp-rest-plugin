@@ -204,6 +204,10 @@ Class RestComponent extends Object {
 	 * @param <type> $Controller
 	 */
 	public function shutdown (&$Controller) {
+		if (!$this->isActive()) {
+			return;
+		}
+
 		$this->log(array(
 			'responded' => date('Y-m-d H:i:s'),
 		));
