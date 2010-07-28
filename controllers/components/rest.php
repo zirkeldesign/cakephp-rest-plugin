@@ -633,6 +633,10 @@ Class RestComponent extends Object {
 	public function isActive () {
 		static $isActive;
 		if (!isset($isActive)) {
+			if (!isset($this->Controller) || !is_object($this->Controller)) {
+				return false;
+			}
+
 			$isActive = in_array(
 				$this->Controller->params['url']['ext'],
 				$this->_settings['extensions']
