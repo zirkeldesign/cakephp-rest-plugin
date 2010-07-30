@@ -651,6 +651,12 @@ Class RestComponent extends Object {
 		$this->_feedback[__FUNCTION__][] = $format;
 		return false;
 	}
+	public function debug ($format, $arg1 = null, $arg2 = null) {
+		$args = func_get_args();
+		if (count($args) > 1) $format = vsprintf($format, $args);
+		$this->_feedback[__FUNCTION__][] = $format;
+		return true;
+	}
 	public function info ($format, $arg1 = null, $arg2 = null) {
 		$args = func_get_args();
 		if (count($args) > 1) $format = vsprintf($format, $args);
@@ -851,7 +857,7 @@ Class RestComponent extends Object {
 			}
 
 			if (empty($error) && !empty($params['redirect'])) {
-				$error = 'Attempted redirect blocked by REST';
+				$this->debug('Redirect prevented by rest component. ');
 			}
 		}
 		if ($error) {
