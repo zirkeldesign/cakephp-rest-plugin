@@ -80,27 +80,37 @@ Class RestComponent extends Object {
 			),
 		),
 		'exposeVars' => array(
-			'method' => 'get|post|put|delete',
-			'id' => 'true|false',
+			'*' => array(
+				'method' => 'get|post|put|delete',
+				'id' => 'true|false',
+			),
+			'index' => array(
+				'scopeVar' => 'scope|rack_name|any_other_varname_to_specify_scope',
+			),
 		),
 		'defaultVars' => array(
 			'index' => array(
+				'scopeVar' => 'scope',
 				'method' => 'get',
 				'id' => false,
 			),
 			'view' => array(
+				'scopeVar' => 'scope',
 				'method' => 'get',
 				'id' => true,
 			),
 			'edit' => array(
+				'scopeVar' => 'scope',
 				'method' => 'put',
 				'id' => true,
 			),
 			'add' => array(
+				'scopeVar' => 'scope',
 				'method' => 'put',
 				'id' => false,
 			),
 			'delete' => array(
+				'scopeVar' => 'scope',
 				'method' => 'delete',
 				'id' => true,
 			),
@@ -117,7 +127,7 @@ Class RestComponent extends Object {
 			'identfield' => 'apikey',
 			'ip_limit' => array('-1 hour', 60),  // For those not logged in
 		),
-		'version' => '0.2',
+		'version' => '0.3',
 		'view' => array(
 			'extract' => array(),
 		),
@@ -554,8 +564,12 @@ Class RestComponent extends Object {
 							#$debug && prd($this->_settings['exposeVars']);
 							$saveVars = array();
 
+							$exposeVars = array_merge(
+								$this->_settings['exposeVars']['*'],
+								isset($this->_settings['exposeVars'][$action]) ? $this->_settings['exposeVars'][$action] : array()
+							);
 
-							foreach ($this->_settings['exposeVars'] as $exposeVar => $example) {
+							foreach ($exposeVars as $exposeVar => $example) {
 								if (isset($vars[$exposeVar])) {
 									$saveVars[$exposeVar] = $vars[$exposeVar];
 								} else {
@@ -583,8 +597,6 @@ Class RestComponent extends Object {
 				}
 				unset($Controller);
 			}
-
-			#prd($restControllers);
 
 			ksort($restControllers);
 
