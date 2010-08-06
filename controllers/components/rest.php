@@ -859,6 +859,7 @@ Class RestComponent extends Object {
 				// Automatically fetch Auth Component Errors
 				$code  = '403';
 				$error = $this->Controller->Session->read('Message.auth.message');
+				$this->Controller->Session->delete('Message.auth');
 			}
 
 			if (!empty($params['status'])) {
