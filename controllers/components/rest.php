@@ -766,12 +766,15 @@ Class RestComponent extends Object {
 			? 'error'
 			: 'ok';
 
+		$time     = time();
 		$response = array(
 			'meta' => array(
 				'status' => $status,
 				'feedback' => $feedback,
 				'request' => $server,
 				'credentials' => array(),
+				'time_epoch' => gmdate('U', $time),
+				'time_local' => date('r', $time),
 			),
 			'data' => $data,
 		);
