@@ -93,6 +93,7 @@ which is used to parse credentials for authentication.
 
 Beware that you can no longer use ->render() yourself
 
+```php
     <?php
     class ServersController extends AppController {
         public $components = array(
@@ -134,6 +135,7 @@ Beware that you can no longer use ->render() yourself
         }
     }
     ?>
+```
 
 `extract` extracts variables you have in: `$this->viewVars`
 and makes them available in the resulting XML or JSON under
@@ -141,6 +143,7 @@ the name you specify in the value part.
 
 Here's a more simple example of how you would use the viewVar `tweets` **as-is**:
 
+```php
 	<?php
 	class TweetsController extends AppController {
 		public $components = array (
@@ -156,10 +159,11 @@ Here's a more simple example of how you would use the viewVar `tweets` **as-is**
 			$this->set(compact('tweets'));
 		}
     }
-	?>
+```
 
 And when asked for the xml version, Rest Plugin would return this to your clients:
 
+```xml
 	<?xml version="1.0" encoding="utf-8"?>
 	<tweets_response>
 	  <meta>
@@ -199,6 +203,7 @@ And when asked for the xml version, Rest Plugin would return this to your client
 		</tweets>
 	  </data>
 	</tweets_response>
+```
 
 As you can see, the controller name + response is always the root element (for json there is no root element).
 Then the content is divived in `meta` & `data`, and the latter is where your actual viewvars are stored.
@@ -218,6 +223,7 @@ So login anyone with e.g. `$this->Auth->login()` and the information you retriev
 
 Example:
 
+```php
     public function beforeFilter () {
 		if (!$this->Auth->user()) {
 			// Try to login user via REST
@@ -245,33 +251,39 @@ Example:
 		}
 		parent::beforeFilter();
 	}
-	
+```
 
 ## Router
 
+```php
     // Add an element for each controller that you want to open up
     // in the REST API
     Router::mapResources(array('servers'));
 
     // Add XML + JSON to your parseExtensions
     Router::parseExtensions('rss', 'json', 'xml', 'json', 'pdf');
+```
 
 ## Callbacks
 
 If you're using the built-in ratelimiter, you may still want a little control yourself.
 I provide that in the form of 4 callbacks:
 
+```php
     public function restlogBeforeSave ($Rest) {}
     public function restlogAfterSave ($Rest) {}
     public function restlogBeforeFind ($Rest) {}
     public function restlogAfterFind ($Rest) {}
+```
 
 That will be called in you AppController if they exists.
 
 You may want to give a specific user a specific ratelimit. In that case you can use
 the following callback in your User Model:
 
+```php
     public function restRatelimitMax ($Rest, $credentials = array()) { }
+```
 
 And for that user the return value of the callback will be used instead of the general
 class limit you could have specified in the settings.
@@ -280,7 +292,7 @@ class limit you could have specified in the settings.
 
 You can map callbacks to different places using the `callbacks` setting like so:
 
-
+```php
     <?php
     class ServersController extends AppController {
         public $components = array(
@@ -295,6 +307,6 @@ You can map callbacks to different places using the `callbacks` setting like so:
             ),
         );
     }
-    ?>
+```
 
 If the resolved callback is a string we assume it's in the calling controller. 
