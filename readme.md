@@ -1,6 +1,6 @@
 CakePHP REST Plugin takes whatever your existing controller actions gather
 in viewvars, reformats it in json or xml, and outputs it to the client.
-Be cause you hook it into existing actions, you only have to write your
+Because you hook it into existing actions, you only have to write your
 features once, and this plugin will just unlock them as API.
 The plugin knows it's being called by looking at the extension in the url: .json or .xml.
 
@@ -235,18 +235,11 @@ Example:
 				        'password' => $credentials['password'],
 				    ),
 				);
-				$data = LiveUser::hashPasswords($data);
+				$data = $this->Auth->hashPasswords($data);
 				if (!$this->Auth->login($data)) {
 				    $msg = sprintf('Unable to log you in with the supplied credentials. ');
 				    return $this->Rest->abort(array('status' => '403', 'error' => $msg));
 				}
-			
-		        // Additionally Check API key
-		        if (LiveUser::apikey($credentials) !== $credentials['apikey']) {
-		            $this->Auth->logout();
-		            $msg = sprintf('Invalid API key: "%s"', $credentials['apikey']);
-		            return $this->Rest->abort(array('status' => '403', 'error' => $msg));
-		        }
 			}
 		}
 		parent::beforeFilter();
