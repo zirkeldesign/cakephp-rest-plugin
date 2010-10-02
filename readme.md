@@ -1,4 +1,4 @@
-Like this plugin? Consider [a small donation](https://flattr.com/thing/68757/cakephp-pdfview-plugin)
+Like this plugin? Consider [a small donation](https://flattr.com/thing/68756/cakephp-rest-plugin)
 
 CakePHP REST Plugin takes whatever your existing controller actions gather
 in viewvars, reformats it in json or xml, and outputs it to the client.
