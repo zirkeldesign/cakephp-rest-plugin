@@ -38,8 +38,6 @@ Tested with:
  - CakePHP 1.2
  - CakePHP 1.3
 
-Like this plugin? Consider [a small donation](https://flattr.com/thing/68756/cakephp-rest-plugin)
-
 ### Resources
 
 This plugin was based on:
@@ -57,6 +55,15 @@ I'm writing a client side API that talks to this plugin for the company I work f
 If you're looking to provide your customers with something similar, 
 it may be helpful to [have a look at it](http://github.com/true/true-api).
 
+### Leave comments
+
+[On my blog](http://kevin.vanzonneveld.net/techblog/article/cakephp_rest_plugin_presentation/)
+
+### Leave money ;)
+
+Like this plugin? Consider [a small donation](https://flattr.com/thing/68756/cakephp-rest-plugin)
+
+Love this plugin? Consider [a big donation](http://pledgie.com/campaigns/12581)
 
 ### Todo
 
