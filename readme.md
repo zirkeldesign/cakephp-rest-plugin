@@ -5,7 +5,7 @@ takes whatever your existing controller actions gather in viewvars,
 reformats it in json or xml, and outputs it to the client.  
 Because you hook it into existing actions, you only have to write your
 features once, and this plugin will just unlock them as API.
-The plugin knows it's being called by looking at the extension in the url: .json or .xml.
+The plugin knows it's being called by looking at the extension in the url: `.json` or `.xml`.
 
 So, if you've already coded:
 
@@ -52,6 +52,11 @@ This plugin was based on:
 I held a presentation on this plugin during the first Dutch CakePHP meetup:
 
 - [REST presentation at slideshare](http://www.slideshare.net/kevinvz/rest-presentation-2901872)
+
+I'm writing a client side API that talks to this plugin for the company I work for.
+If you're looking to provide your customers with something similar, 
+it may be helpful to [have a look at it](http://github.com/true/true-api).
+
 
 ### Todo
 
