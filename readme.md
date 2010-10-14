@@ -1,4 +1,3 @@
-Like this plugin? Consider [a small donation](https://flattr.com/thing/68756/cakephp-rest-plugin)
 
 CakePHP REST Plugin takes whatever your existing controller actions gather
 in viewvars, reformats it in json or xml, and outputs it to the client.
@@ -17,10 +16,10 @@ You can have
 
 up & running in no time.
 
-The reformatting of your vars can even change the structure of your existing viewvars by
-using bi-directional xpaths. So you can extract info using an xpath, and
-it will be written into API json with another xpath. If this doesn't make any
-sense, look at the examples.
+CakePHP REST Plugin can even change the structure of your existing viewvars
+using bi-directional xpaths. This way you can extract info using an xpath, and
+output it to your API clients using another xpath. If this doesn't make any
+sense, please have a look at the examples.
 
 You attach the Rest.Rest component to a controller, but you can limit REST
 activity to a single action.
@@ -29,6 +28,14 @@ For best results, 2 changes to your application have to be made.
 
   1 A check for REST in errors & redirects
   2 Resource mapping in your router
+
+
+Compatible with:
+
+ - CakePHP 1.2
+ - CakePHP 1.3
+
+Like this plugin? Consider [a small donation](https://flattr.com/thing/68756/cakephp-rest-plugin)
 
 Based on:
 
@@ -52,7 +59,7 @@ I held a presentation on this plugin during the first Dutch CakePHP meetup:
 Todo:
 
  - More testing
- - Cake 1.3 support?
+ - DONE - Cake 1.3 support
  - DONE - The RestLog model that tracks usage should focus more on IP for rate-limiting
    than account info. This is mostly to defend against denial of server & brute
    force attempts
@@ -304,4 +311,4 @@ You can map callbacks to different places using the `callbacks` setting like so:
     }
 ```
 
-If the resolved callback is a string we assume it's in the calling controller. 
+If the resolved callback is a string we assume it's a method in the calling controller.
