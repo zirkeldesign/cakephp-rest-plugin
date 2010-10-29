@@ -29,7 +29,7 @@ class BluntXml {
 			return false;
 		}
 
-		$array	    = $this->_toArray($obj);
+		$array		= $this->_toArray($obj);
 		$unitemized = $this->_unitemize($array);
 
 		return $unitemized;
@@ -87,7 +87,7 @@ class BluntXml {
 	 * SimpleXML Object to Array
 	 *
 	 * @param object $object
-     *
+	 *
 	 * @return array $array
 	 */
 	protected function _toArray ($object) {
@@ -99,8 +99,8 @@ class BluntXml {
 			   } else {
 				   $array[$key] = $this->_toArray($val);
 			   }
-           } else if (is_array($val)) {
-               $array[$key] = $this->_toArray($val);
+		   } else if (is_array($val)) {
+			   $array[$key] = $this->_toArray($val);
 		   } else {
 			   $array[$key] = $this->_toArrayValue($val, $key);
 		   }
@@ -126,7 +126,7 @@ class BluntXml {
 		if (!$doc->loadXML($xml)) {
 			trigger_error('Invalid XML: ' . $xml, E_USER_ERROR);
 		}
-		$doc->encoding     = $this->encoding;
+		$doc->encoding	 = $this->encoding;
 		$doc->formatOutput = true;
 
 		return $doc->saveXML();
