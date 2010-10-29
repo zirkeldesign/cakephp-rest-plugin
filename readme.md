@@ -264,6 +264,11 @@ Example:
     }
 ```
 
+### Schema
+
+If you're going to make use of this plugin's Logging & Ratelimitting (default) and you
+should run the database schema found in: `config/schema/rest_logs.sql`.
+
 ### Router
 
 ```php
