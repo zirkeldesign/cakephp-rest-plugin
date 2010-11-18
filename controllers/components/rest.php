@@ -132,6 +132,7 @@ Class RestComponent extends Object {
 			'extract' => array(),
 		),
 		'debug' => 0,
+		'onlyActiveWithAuth' => true,
 	);
 
 
@@ -649,10 +650,20 @@ Class RestComponent extends Object {
 				return false;
 			}
 
-			$isActive = in_array(
-				$this->Controller->params['url']['ext'],
-				$this->_settings['extensions']
-			);
+			if (@$this->_settings['onlyActiveWithAuth'] === true) {
+				if (isset($this->_settings['auth']['keyword']) && strpos(@$_SERVER['HTTP_AUTHORIZATION'], $this->_settings['auth']['keyword']) === 0) {
+					$isActive = true;
+				} else {
+					$isActive = false;
+				}
+			}
+
+			if (!isset($isActive)) {
+				$isActive = in_array(
+					$this->Controller->params['url']['ext'],
+					$this->_settings['extensions']
+				);
+			}
 		}
 		return $isActive;
 	}
