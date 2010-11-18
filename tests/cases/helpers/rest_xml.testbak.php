@@ -24,17 +24,17 @@ class RestXmlHelperTestCase extends CakeTestCase {
 		$result = $this->RestXml->serialize('Another String', 'name');
 		$this->assertEqual($result, '<name>Another String</name>');
 	}
-	
+
 	function testSerializeBoolean() {
 		$result = $this->RestXml->serialize(true);
 		$this->assertEqual($result, '<var type="boolean">true</var>');
 	}
-	
+
 	function testSerializeBooleanFalse() {
 		$result = $this->RestXml->serialize(false);
 		$this->assertEqual($result, '<var type="boolean">false</var>');
 	}
-	
+
 	function testSerializeDatetime() {
 		$result = $this->RestXml->serialize('2009-04-07T01:48:04Z');
 		$this->assertEqual($result, '<var type="datetime">2009-04-07T01:48:04Z</var>');
@@ -214,4 +214,3 @@ class RestXmlHelperTestCase extends CakeTestCase {
 		$this->assertEqual($result, 'string');
 	}
 }
-?>

@@ -9,7 +9,7 @@ class XmlView extends View {
 	public $BluntXml;
 	public function render ($action = null, $layout = null, $file = null) {
 		if (!array_key_exists('response', $this->viewVars)) {
-		    trigger_error(
+			trigger_error(
 				'viewVar "response" should have been set by Rest component already',
 				E_USER_ERROR
 			);

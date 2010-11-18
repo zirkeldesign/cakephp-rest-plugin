@@ -5,16 +5,16 @@ if (!function_exists('pr')) {
 	 *
 	 * @param mixed $arr
 	 */
-    function pr($arr) {
+	function pr($arr) {
 		return debug($arr);
 		// or:
-        if (is_array($arr) && count($arr)) {
-            print_r($arr);
-        } else {
-            var_dump($arr);
-        }
-        echo "\n";
-    }
+		if (is_array($arr) && count($arr)) {
+			print_r($arr);
+		} else {
+			var_dump($arr);
+		}
+		echo "\n";
+	}
 }
 if (!function_exists('prd')) {
 	/**
@@ -22,10 +22,10 @@ if (!function_exists('prd')) {
 	 *
 	 * @param mixed $arr
 	 */
-    function prd($arr) {
-        pr($arr);
-        die();
-    }
+	function prd($arr) {
+		pr($arr);
+		die();
+	}
 }
 Class RestComponent extends Object {
 	public $codes = array(
@@ -65,7 +65,7 @@ Class RestComponent extends Object {
 			'cbRestRatelimitMax' => 'restRatelimitMax',
 		),
 		'extensions' => array('xml', 'json'),
-		'viewsFromPlugin' => true, 
+		'viewsFromPlugin' => true,
 		'skipControllers' => array( // Don't show these as actual rest controllers even though they have the component attached
 			'App',
 			'Defaults',
@@ -239,7 +239,7 @@ Class RestComponent extends Object {
 
 		// Rate Limit
 		$credentials = $this->credentials();
-		$class	     = @$credentials['class'];
+		$class		 = @$credentials['class'];
 		if (!$class) {
 			$this->warning('Unable to establish class');
 		} else {
@@ -367,7 +367,7 @@ Class RestComponent extends Object {
 		}
 
 		$userField = $this->_settings['ratelimit']['identfield'];
-		$userId    = $this->credentials($userField);
+		$userId	= $this->credentials($userField);
 
 		$this->cbRestlogBeforeFind();
 		if ($userId) {
@@ -593,7 +593,7 @@ Class RestComponent extends Object {
 							$actions[$action] = $saveVars;
 						}
 					}
-					
+
 					$restControllers[$controller] = $actions;
 				}
 				unset($Controller);
@@ -772,12 +772,12 @@ Class RestComponent extends Object {
 		if (empty($data) && !empty($this->postData)) {
 			$data = $this->postData;
 		}
-		
+
 		$status = count(@$this->_feedback['error'])
 			? 'error'
 			: 'ok';
 
-		$time     = time();
+		$time	 = time();
 		$response = array(
 			'meta' => array(
 				'status' => $status,
@@ -845,7 +845,7 @@ Class RestComponent extends Object {
 			$View->params = $this->Controller->params;
 		}
 
-		
+
 		return $View;
 	}
 
@@ -861,7 +861,7 @@ Class RestComponent extends Object {
 			return;
 		}
 		$this->_aborting = true;
-		
+
 		if (is_string($params)) {
 			$code  = '403';
 			$error = $params;

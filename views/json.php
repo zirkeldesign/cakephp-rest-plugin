@@ -1,17 +1,17 @@
-<?php 
-/** 
+<?php
+/**
  * View Class for JSON
- * 
- * @author Juan Basso 
+ *
+ * @author Juan Basso
  * @author Jonathan Dalrymple
  * @author kvz
- * @url http://blog.cakephp-brasil.org/2008/09/11/trabalhando-com-json-no-cakephp-12/ 
- * @licence MIT 
- */ 
-class JsonView extends View { 
+ * @url http://blog.cakephp-brasil.org/2008/09/11/trabalhando-com-json-no-cakephp-12/
+ * @licence MIT
+ */
+class JsonView extends View {
 	public function render ($action = null, $layout = null, $file = null) {
 		if (!array_key_exists('response', $this->viewVars)) {
-		    trigger_error(
+			trigger_error(
 				'viewVar "response" should have been set by Rest component already',
 				E_USER_ERROR
 			);
