@@ -849,8 +849,17 @@ Class RestComponent extends Object {
 		return $View;
 	}
 
+	public function beforeRedirect (&$Controller, $url, $status = null, $exit = true) {
+		if (!$this->isActive()) {
+			return true;
+		}
+		$redirect = true;
+		$this->abort(compact('url', 'status', 'exit', 'redirect'));
+		return false;
+	}
+
 	/**
-	 * Should be called by Controller->redirect to dump
+	 * Could be called by e.g. ->redirect to dump
 	 * an error & stop further execution.
 	 *
 	 * @param <type> $params

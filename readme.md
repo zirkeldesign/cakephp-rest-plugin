@@ -131,25 +131,13 @@ Beware that you can no longer use ->render() yourself
          * Shortcut so you can check in your Controllers wether
          * REST Component is currently active.
          *
-         * Use it in your ->redirect() and ->flash() methods
+         * Use it in your ->flash() methods
          * to forward errors to REST with e.g. $this->Rest->error()
          *
          * @return boolean
          */
         protected function _isRest() {
             return !empty($this->Rest) && is_object($this->Rest) && $this->Rest->isActive();
-        }
-
-        public function redirect($url, $status = null, $exit = true) {
-            if ($this->_isRest()) {
-                // Just don't redirect.. Let REST die gracefully
-                // Do set the HTTP code though
-                parent::redirect(null, $status, false);
-                $redirect = true;
-                $this->Rest->abort(compact('url', 'status', 'exit', 'redirect'));
-            }
-
-            parent::redirect($url, $status, $exit);
         }
     }
     ?>
