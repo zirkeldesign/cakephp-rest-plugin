@@ -117,6 +117,7 @@ Beware that you can no longer use ->render() yourself
         public $components = array(
             'RequestHandler',
             'Rest.Rest' => array(
+                'catchredir' => true, // Recommended unless you implement something yourself
                 'debug' => 0,
                 'view' => array(
                     'extract' => array('server.Server' => 'servers.0'),
@@ -154,6 +155,7 @@ Here's a more simple example of how you would use the viewVar `tweets` **as-is**
     class TweetsController extends AppController {
         public $components = array (
             'Rest.Rest' => array(
+                'catchredir' => true,
                 'index' => array(
                     'extract' => array('tweets'),
                 ),
@@ -301,6 +303,7 @@ You can map callbacks to different places using the `callbacks` setting like so:
     class ServersController extends AppController {
         public $components = array(
             'Rest.Rest' => array(
+				'catchredir' => true,
                 'callbacks' => array(
                     'cbRestlogBeforeSave' => 'restlogBeforeSave',
                     'cbRestlogAfterSave' => 'restlogAfterSave',

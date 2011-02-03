@@ -133,6 +133,7 @@ Class RestComponent extends Object {
 		),
 		'debug' => 0,
 		'onlyActiveWithAuth' => true,
+		'catchredir' => false,
 	);
 
 
@@ -850,6 +851,10 @@ Class RestComponent extends Object {
 	}
 
 	public function beforeRedirect (&$Controller, $url, $status = null, $exit = true) {
+		if (@$this->_settings['catchredir'] === false) {
+			return;
+		}
+
 		if (!$this->isActive()) {
 			return true;
 		}
