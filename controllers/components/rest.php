@@ -50,10 +50,10 @@ Class RestComponent extends Object {
 	public $postData;
 
 	protected $_RestLog;
-	protected $_logData = array();
-	protected $_feedback = array();
+	protected $_logData     = array();
+	protected $_feedback    = array();
 	protected $_credentials = array();
-	protected $_aborting = false;
+	protected $_aborting    = false;
 
 	protected $_settings = array(
 		// Component options

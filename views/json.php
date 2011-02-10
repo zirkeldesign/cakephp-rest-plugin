@@ -9,6 +9,8 @@
  * @licence MIT
  */
 class JsonView extends View {
+	public $jsonTab = "  ";
+
 	public function render ($action = null, $layout = null, $file = null) {
 		if (!array_key_exists('response', $this->viewVars)) {
 			trigger_error(
@@ -21,8 +23,23 @@ class JsonView extends View {
 		return $this->encode($this->viewVars['response']);
 	}
 
-	// Adapted from http://www.php.net/manual/en/function.json-encode.php#82904. Author: Steve (30-Apr-2008 05:35)
 	public function encode ($response) {
+		return $this->format($this->_encode($response));
+	}
+
+	/**
+	 * PHP version independent json_encode
+	 *
+	 * Adapted from http://www.php.net/manual/en/function.json-encode.php#82904.
+	 * Author: Steve (30-Apr-2008 05:35)
+	 *
+	 *
+	 * @staticvar array $jsonReplaces
+	 * @param array $response
+	 *
+	 * @return string
+	 */
+	public function _encode ($response) {
 		if (function_exists('json_encode')) {
 			// PHP 5.2+
 			return json_encode($response);
@@ -68,5 +85,74 @@ class JsonView extends View {
 			}
 			return '{' . join(',', $result) . '}';
 		}
+	}
+
+	/**
+	 * Pretty print JSON
+	 * http://www.php.net/manual/en/function.json-encode.php#80339
+	 *
+	 * @param string $json
+	 * 
+	 * @return string
+	 */
+	public function json_format ($json) {
+		$new_json     = "";
+		$indent_level = 0;
+		$in_string    = false;
+
+		$len  = strlen($json);
+
+		for ($c = 0; $c < $len; $c++) {
+			$char = $json[$c];
+			switch ($char) {
+				case '{':
+				case '[':
+					if (!$in_string) {
+						$new_json .= $char . "\n" . str_repeat($this->jsonTab, $indent_level + 1);
+						$indent_level++;
+					} else {
+						$new_json .= $char;
+					}
+					break;
+				case '}':
+				case ']':
+					if (!$in_string) {
+						$indent_level--;
+						$new_json .= "\n" . str_repeat($this->jsonTab, $indent_level) . $char;
+					} else {
+						$new_json .= $char;
+					}
+					break;
+				case ',':
+					if (!$in_string) {
+						$new_json .= ",\n" . str_repeat($this->jsonTab, $indent_level);
+					} else {
+						$new_json .= $char;
+					}
+					break;
+				case ':':
+					if (!$in_string) {
+						$new_json .= ": ";
+					} else {
+						$new_json .= $char;
+					}
+					break;
+				case '"':
+					if ($c > 0 && $json[$c - 1] != '\\') {
+						$in_string = !$in_string;
+					}
+				default:
+					$new_json .= $char;
+					break;
+			}
+		}
+
+        // Return true json at all cost
+        if (false === json_decode($new_json)) {
+            // If we messed up the semantics, return original
+            return $json;
+        }
+
+		return $new_json;
 	}
 }
