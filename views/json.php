@@ -24,7 +24,7 @@ class JsonView extends View {
 	}
 
 	public function encode ($response) {
-		return $this->format($this->_encode($response));
+		return $this->json_format($this->_encode($response));
 	}
 
 	/**
