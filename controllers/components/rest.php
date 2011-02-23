@@ -132,7 +132,7 @@ Class RestComponent extends Object {
 			'extract' => array(),
 		),
 		'debug' => 0,
-		'onlyActiveWithAuth' => true,
+		'onlyActiveWithAuth' => false,
 		'catchredir' => false,
 	);
 
@@ -838,7 +838,8 @@ Class RestComponent extends Object {
 
 		if (!class_exists($className)) {
 			$pluginRoot = dirname(dirname(dirname(__FILE__)));
-			require_once $pluginRoot . '/views/' . $ext . '.php';
+			$viewFile   = $pluginRoot . '/views/' . $ext . '.php';
+			require_once $viewFile;
 		}
 
 		$View = ClassRegistry::init('Rest.'.$className);
