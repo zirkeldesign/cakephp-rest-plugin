@@ -289,6 +289,18 @@ Class RestComponent extends Object {
 		$response = $this->response($data);
 
 		$this->Controller->set(compact('response'));
+		
+		//if a callback function is requested, pass the callback name to the controller
+		//responds if following query parameters present: jsoncallback, callback
+		$json_callback_key = array('jsoncallback', 'callback');
+		foreach($json_callback_key as $key) {
+			if(array_key_exists($key, $this->Controller->params['url'])) {
+				$callback_key = $key;
+			}
+		}
+		if (isset($callback_key)) {
+			$this->Controller->set('callbackFunc', $this->Controller->params['url'][$callback_key]);
+		}
 	}
 
 	/**
