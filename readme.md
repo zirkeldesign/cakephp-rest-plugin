@@ -320,7 +320,8 @@ If the resolved callback is a string we assume it's a method in the calling cont
 
 ### JSONP
 
-[Thanks to Chris Toppon](https://github.com/kvz/cakephp-rest-plugin/pull/3#issuecomment-883201) there
+[Thanks to](https://github.com/kvz/cakephp-rest-plugin/pull/3#issuecomment-883201)
+[Chris Toppon](http://www.supermethod.com/) there
 now also is JSONP support out of the box.
 
 No extra PHP code or configuration is required on the server side with this patch,
@@ -341,5 +342,7 @@ Jquery replaces the question mark in `callback=?` with its own function name
 generated at the time of the request (and removed after use).
 
 Good explanations of typical JSONP usage here (jquery):
-[http://remysharp.com/2007/10/08/what-is-jsonp/]()
-[http://www.ibm.com/developerworks/library/wa-aj-jsonp1/]()
+
+ - [](http://remysharp.com/2007/10/08/what-is-jsonp/)
+ - [](http://www.ibm.com/developerworks/library/wa-aj-jsonp1/)
+
