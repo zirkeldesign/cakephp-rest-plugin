@@ -318,31 +318,32 @@ You can map callbacks to different places using the `callbacks` setting like so:
 
 If the resolved callback is a string we assume it's a method in the calling controller.
 
-### JSONP
+### JSONP support
 
 [Thanks to](https://github.com/kvz/cakephp-rest-plugin/pull/3#issuecomment-883201)
 [Chris Toppon](http://www.supermethod.com/) there
-now also is JSONP support out of the box.
+now also is [JSONP](http://en.wikipedia.org/wiki/JSON#JSONP) support out of the box.
 
 No extra PHP code or configuration is required on the server side with this patch,
-just supply either the parameter `callback` or `jsoncallback` to the json url
+just supply either the parameter `callback` or `jsoncallback` to the JSON url
 provided by your plugin and the output will be wrapped in mycallback as a function.
 
-Chris is using this for a Sencha Touch app where he needs access cross domain -
-but thinks maybe a jQuery example might be more illustrative - jQuery's `getjSON`
-will automatically switch to a JSONP call if `?callback=?` is present in the url.
 For example:
 
-	jQuery.getJSON("http://www.yourdomain.com/products/product.json?callback=?",
-	function (data) {
-	   alert("Product: " + data.product.name + ", Price: " + data.product.price);
+	<script type="text/javascript">
+	var showPrice = function (data) {
+		alert('Product: ' + data.product.name + ', Price: ' + data.product.price);
+	}
+	</script>
+	<script type="text/javascript" src="http://server2.example.com/getjson?callback=showPrice"></script>
+
+With jQuery, I believe something similar could have been achieved like so:
+
+	jQuery.getJSON('http://www.yourdomain.com/products/product.json', function (data) {
+	   alert('Product: ' + data.product.name + ', Price: ' + data.product.price);
 	});
 
-Jquery replaces the question mark in `callback=?` with its own function name
-generated at the time of the request (and removed after use).
+Good explanations of typical JSONP usage here (jQuery):
 
-Good explanations of typical JSONP usage here (jquery):
-
- - [](http://remysharp.com/2007/10/08/what-is-jsonp/)
- - [](http://www.ibm.com/developerworks/library/wa-aj-jsonp1/)
-
+ - [What is JSONP?](http://remysharp.com/2007/10/08/what-is-jsonp/)
+ - [Cross-domain communications with JSONP, Part 1: Combine JSONP and jQuery to quickly build powerful mashups](http://www.ibm.com/developerworks/library/wa-aj-jsonp1/)
