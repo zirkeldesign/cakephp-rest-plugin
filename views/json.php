@@ -19,8 +19,13 @@ class JsonView extends View {
 			);
 			return false;
 		}
-
-		return $this->encode($this->viewVars['response']);
+		//wrap in callback function if requested
+		if (array_key_exists('callbackFunc', $this->viewVars)) {
+			return $this->viewVars['callbackFunc'].'('.$this->encode($this->viewVars['response']).')';
+		} 
+		else {
+			return $this->encode($this->viewVars['response']);
+		}
 	}
 
 	public function encode ($response) {
