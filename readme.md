@@ -317,3 +317,29 @@ You can map callbacks to different places using the `callbacks` setting like so:
 ```
 
 If the resolved callback is a string we assume it's a method in the calling controller.
+
+### JSONP
+
+[Thanks to Chris Toppon](https://github.com/kvz/cakephp-rest-plugin/pull/3#issuecomment-883201) there
+now also is JSONP support out of the box.
+
+No extra PHP code or configuration is required on the server side with this patch,
+just supply either the parameter `callback` or `jsoncallback` to the json url
+provided by your plugin and the output will be wrapped in mycallback as a function.
+
+Chris is using this for a Sencha Touch app where he needs access cross domain -
+but thinks maybe a jQuery example might be more illustrative - jQuery's `getjSON`
+will automatically switch to a JSONP call if `?callback=?` is present in the url.
+For example:
+
+	jQuery.getJSON("http://www.yourdomain.com/products/product.json?callback=?",
+	function (data) {
+	   alert("Product: " + data.product.name + ", Price: " + data.product.price);
+	});
+
+Jquery replaces the question mark in `callback=?` with its own function name
+generated at the time of the request (and removed after use).
+
+Good explanations of typical JSONP usage here (jquery):
+[http://remysharp.com/2007/10/08/what-is-jsonp/]()
+[http://www.ibm.com/developerworks/library/wa-aj-jsonp1/]()
