@@ -2,7 +2,7 @@
 
 [CakePHP REST Plugin](http://kevin.vanzonneveld.net/techblog/article/cakephp_rest_plugin_presentation/)
 takes whatever your existing controller actions gather in viewvars,
-reformats it in json or xml, and outputs it to the client.  
+reformats it in json or xml, and outputs it to the client.
 Because you hook it into existing actions, you only have to write your
 features once, and this plugin will just unlock them as API.
 The plugin knows it's being called by looking at the extension in the url: `.json` or `.xml`.
@@ -52,7 +52,7 @@ I held a presentation on this plugin during the first Dutch CakePHP meetup:
 - [REST presentation at slideshare](http://www.slideshare.net/kevinvz/rest-presentation-2901872)
 
 I'm writing a client side API that talks to this plugin for the company I work for.
-If you're looking to provide your customers with something similar, 
+If you're looking to provide your customers with something similar,
 it may be helpful to [have a look at it](http://github.com/true/true-api).
 
 ### Leave comments
@@ -303,7 +303,7 @@ You can map callbacks to different places using the `callbacks` setting like so:
     class ServersController extends AppController {
         public $components = array(
             'Rest.Rest' => array(
-				'catchredir' => true,
+                'catchredir' => true,
                 'callbacks' => array(
                     'cbRestlogBeforeSave' => 'restlogBeforeSave',
                     'cbRestlogAfterSave' => 'restlogAfterSave',
@@ -330,20 +330,26 @@ provided by your plugin and the output will be wrapped in mycallback as a functi
 
 For example:
 
-	<script type="text/javascript">
-	var showPrice = function (data) {
-		alert('Product: ' + data.product.name + ', Price: ' + data.product.price);
-	}
-	</script>
-	<script type="text/javascript" src="http://server2.example.com/getjson?callback=showPrice"></script>
+    <script type="text/javascript">
+    var showPrice = function (data) {
+       alert('Product: ' + data.product.name + ', Price: ' + data.product.price);
+    }
+    </script>
+    <script type="text/javascript" src="http://server2.example.com/getjson?callback=showPrice"></script>
 
-With jQuery, I believe something similar could have been achieved like so:
+With jQuery, something similar could have been achieved like so:
 
-	jQuery.getJSON('http://www.yourdomain.com/products/product.json', function (data) {
-	   alert('Product: ' + data.product.name + ', Price: ' + data.product.price);
-	});
+    jQuery.getJSON('http://www.yourdomain.com/products/product.json', function (data) {
+        alert('Product: ' + data.product.name + ', Price: ' + data.product.price);
+    });
 
-Good explanations of typical JSONP usage here (jQuery):
+But for cross-domain requests, use JSONP. jQuery will substitute `?` with the callback.
+
+    jQuery.getJSON('http://www.yourdomain.com/products/product.json?callback=?', function (data) {
+        alert('Product: ' + data.product.name + ', Price: ' + data.product.price);
+    });
+
+Good explanations of typical JSONP usage here:
 
  - [What is JSONP?](http://remysharp.com/2007/10/08/what-is-jsonp/)
  - [Cross-domain communications with JSONP, Part 1: Combine JSONP and jQuery to quickly build powerful mashups](http://www.ibm.com/developerworks/library/wa-aj-jsonp1/)
