@@ -289,7 +289,7 @@ Class RestComponent extends Object {
 		$response = $this->response($data);
 
 		$this->Controller->set(compact('response'));
-		
+
 		//if a callback function is requested, pass the callback name to the controller
 		//responds if following query parameters present: jsoncallback, callback
 		$json_callback_key = array('jsoncallback', 'callback');
