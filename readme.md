@@ -63,7 +63,7 @@ it may be helpful to [have a look at it](http://github.com/true/true-api).
 
 Like this plugin? Consider [a small donation](https://flattr.com/thing/68756/cakephp-rest-plugin)
 
-Love this plugin? Consider [a big donation](http://pledgie.com/campaigns/12581)
+Love this plugin? Consider [a big donation](http://pledgie.com/campaigns/12581) :)
 
 ### Todo
 
@@ -219,7 +219,7 @@ Meta is there to show any information regarding the validity of the request & re
 
 ### Authorization
 
-Check the HTTP header as shown here: http://docs.amazonwebservices.com/AmazonS3/2006-03-01/index.html?RESTAuthentication.html
+Check the HTTP header as shown [here](http://docs.amazonwebservices.com/AmazonS3/latest/dev/index.html?RESTAuthentication.html)
 You can control the `authKeyword` setting to control what keyword belongs to
 your REST API. By default it uses: TRUEREST. Have your users supply a header like:
 `Authorization: TRUEREST username=john&password=xxx&apikey=247b5a2f72df375279573f2746686daa`
