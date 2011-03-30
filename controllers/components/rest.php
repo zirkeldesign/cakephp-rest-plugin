@@ -289,17 +289,21 @@ Class RestComponent extends Object {
 		$response = $this->response($data);
 
 		$this->Controller->set(compact('response'));
-		
-		//if a callback function is requested, pass the callback name to the controller
-		//responds if following query parameters present: jsoncallback, callback
-		$json_callback_key = array('jsoncallback', 'callback');
-		foreach($json_callback_key as $key) {
-			if(array_key_exists($key, $this->Controller->params['url'])) {
-				$callback_key = $key;
+
+		// if a callback function is requested, pass the callback name to the controller
+		// responds if following query parameters present: jsoncallback, callback
+        $callback = false;
+		$json_callback_keys = array('jsoncallback', 'callback');
+		foreach ($json_callback_keys as $key) {
+			if (array_key_exists($key, $this->Controller->params['url'])) {
+				$callback = $this->Controller->params['url'][$key];
 			}
 		}
-		if (isset($callback_key)) {
-			$this->Controller->set('callbackFunc', $this->Controller->params['url'][$callback_key]);
+		if ($callback) {
+			if (preg_match('/\W/', $callback)) {
+				return $this->abort('Prevented request. Your callback is vulnerable to XSS attacks. ');
+			}
+			$this->Controller->set('callbackFunc', $callback);
 		}
 	}
 

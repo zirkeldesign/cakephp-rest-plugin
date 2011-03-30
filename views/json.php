@@ -19,11 +19,10 @@ class JsonView extends View {
 			);
 			return false;
 		}
-		//wrap in callback function if requested
+		// JSONP: Wrap in callback function if requested
 		if (array_key_exists('callbackFunc', $this->viewVars)) {
-			return $this->viewVars['callbackFunc'].'('.$this->encode($this->viewVars['response']).')';
-		} 
-		else {
+			return $this->viewVars['callbackFunc'].'('.$this->encode($this->viewVars['response']).');';
+		} else {
 			return $this->encode($this->viewVars['response']);
 		}
 	}
@@ -97,7 +96,7 @@ class JsonView extends View {
 	 * http://www.php.net/manual/en/function.json-encode.php#80339
 	 *
 	 * @param string $json
-	 * 
+	 *
 	 * @return string
 	 */
 	public function json_format ($json) {
