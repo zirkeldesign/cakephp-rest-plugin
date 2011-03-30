@@ -186,7 +186,7 @@ class BluntXml {
 		if ($data === null) {
 			return 'NULL';
 		}
-		return $data;
+		return htmlentities($data, ENT_COMPAT, 'UTF-8');
 	}
 
 	protected function _toArrayValue ($data, $key = '') {

@@ -30,7 +30,7 @@ class CsvView extends View {
 	        unset($response['meta']);
 	    } else {
 	        return 'status: '.$response['meta']['status']."\n".
-	            'message': $response['meta']['feedback']['message']."\n";
+	            'message:'. $response['meta']['feedback']['message']."\n";
 	    }
 	    
         // set everything from data part to one single one dimensional array
