@@ -151,11 +151,11 @@ class JsonView extends View {
 			}
 		}
 
-        // Return true json at all cost
-        if (false === json_decode($new_json)) {
-            // If we messed up the semantics, return original
-            return $json;
-        }
+		// Return true json at all cost
+		if (false === json_decode($new_json)) {
+			// If we messed up the semantics, return original
+			return $json;
+		}
 
 		return $new_json;
 	}
