@@ -134,6 +134,7 @@ Class RestComponent extends Object {
 		'debug' => 0,
 		'onlyActiveWithAuth' => false,
 		'catchredir' => false,
+		'ratelimiter' => true
 	);
 
 
@@ -239,30 +240,31 @@ Class RestComponent extends Object {
 		}
 
 		// Rate Limit
-		$credentials = $this->credentials();
-		$class		 = @$credentials['class'];
-		if (!$class) {
-			$this->warning('Unable to establish class');
-		} else {
-			list($time, $max) = $this->_settings['ratelimit']['classlimits'][$class];
+		if ($this->_settings['ratelimiter']) {		
+			$credentials = $this->credentials();
+			$class		 = @$credentials['class'];
+			if (!$class) {
+				$this->warning('Unable to establish class');
+			} else {
+				list($time, $max) = $this->_settings['ratelimit']['classlimits'][$class];
 
-			$cbMax = $this->cbRestRatelimitMax($credentials);
-			if ($cbMax) {
-				$max = $cbMax;
-			}
+				$cbMax = $this->cbRestRatelimitMax($credentials);
+				if ($cbMax) {
+					$max = $cbMax;
+				}
 
-			if (true !== ($count = $this->ratelimit($time, $max))) {
-				$msg = sprintf(
-					'You have reached your ratelimit (%s is more than the allowed %s requests in %s)',
-					$count,
-					$max,
-					str_replace('-', '', $time)
-				);
-				$this->log('ratelimited', 1);
-				return $this->abort($msg);
+				if (true !== ($count = $this->ratelimit($time, $max))) {
+					$msg = sprintf(
+						'You have reached your ratelimit (%s is more than the allowed %s requests in %s)',
+						$count,
+						$max,
+						str_replace('-', '', $time)
+					);
+					$this->log('ratelimited', 1);
+					return $this->abort($msg);
+				}
 			}
 		}
-
 		if ($this->_settings['viewsFromPlugin']) {
 			// Setup the controller so it can use
 			// the view inside this plugin
