@@ -337,6 +337,12 @@ Class RestComponent extends Object {
 		if (!is_array($data)) {
 			return $data;
 		}
+		
+		// Don't throw errors if data is already modelized
+		// f.e. sending a serialized FormHelper form via ajax 
+		if (isset($data[$this->Controller->modelClass])) {
+			$data = $data[$this->Controller->modelClass];
+		}
 
 		// Protected against Saving multiple models in one post
 		// while still allowing mass-updates in the form of:
