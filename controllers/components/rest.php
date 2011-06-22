@@ -92,6 +92,7 @@ Class RestComponent extends Object {
 			'dump' => true, // Saves entire in + out dumps in log. Also see config/schema/rest_logs.sql
 		),
 		'meta' => array(
+			'enable' => true,
 			'requestKeys' => array(
 				'HTTP_HOST',
 				'HTTP_USER_AGENT',
@@ -768,8 +769,6 @@ Class RestComponent extends Object {
 	 * @return array
 	 */
 	public function response ($data = array()) {
-
-
 		// In case of edit, return what post data was received
 		if (empty($data) && !empty($this->postData)) {
 			$data = $this->postData;
@@ -783,16 +782,6 @@ Class RestComponent extends Object {
 		}
 		$feedback   = $this->getFeedBack(true);
 
-		$serverKeys = array_flip($this->_settings['meta']['requestKeys']);
-		$server = array_intersect_key($_SERVER, $serverKeys);
-		foreach ($server as $k=>$v) {
-			if ($k === ($lc = strtolower($k))) {
-				continue;
-			}
-			$server[$lc] = $v;
-			unset($server[$k]);
-		}
-
 		$hasErrors = count(@$this->_feedback['error']);
 		$hasValidationErrors = count(@$this->_feedback['validate']);
 
@@ -801,32 +790,45 @@ Class RestComponent extends Object {
 			: 'ok';
 
 		$time	 = time();
-		$response = array(
-			'meta' => array(
+		$response = compact('data');
+
+		if ($this->_settings['meta']['enable']) {
+			$serverKeys = array_flip($this->_settings['meta']['requestKeys']);
+			$server = array_intersect_key($_SERVER, $serverKeys);
+			foreach ($server as $k=>$v) {
+				if ($k === ($lc = strtolower($k))) {
+					continue;
+				}
+				$server[$lc] = $v;
+				unset($server[$k]);
+			}
+
+			$response['meta'] = array(
 				'status' => $status,
 				'feedback' => $feedback,
 				'request' => $server,
 				'credentials' => array(),
 				'time_epoch' => gmdate('U', $time),
 				'time_local' => date('r', $time),
-			),
-			'data' => $data,
-		);
+			);
+			if (!empty($this->_settings['version'])) {
+				$response['meta']['version'] = $this->_settings['version'];
+			}
 
-		if (!empty($this->_settings['version'])) {
-			$response['meta']['version'] = $this->_settings['version'];
-		}
-
-		foreach ($this->_settings['auth']['fields'] as $field) {
-			$response['meta']['credentials'][$field] = $this->credentials($field);
+			foreach ($this->_settings['auth']['fields'] as $field) {
+				$response['meta']['credentials'][$field] = $this->credentials($field);
+			}
 		}
 
 		if (!empty($this->_settings['log']['dump'])) {
-			$this->log(array(
-				'meta' => json_encode($response['meta']),
+			$dump = array(
 				'data_in' => json_encode($this->postData),
 				'data_out' => json_encode($response['data']),
-			));
+			);
+			if ($this->_settings['meta']['enable']) {
+				$dump['meta'] = json_encode($response['meta']);
+			}
+			$this->log($dump);
 		}
 
 		return $response;
