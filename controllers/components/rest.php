@@ -103,8 +103,8 @@ Class RestComponent extends Object {
 				'SERVER_PROTOCOL',
 			)
 		),
-
 		'ratelimit' => array(
+			'default' => 'Customer',
 			'classlimits' => array(
 				'Employee' => array('-1 hour', 1000),
 				'Customer' => array('-1 hour', 100),
@@ -501,6 +501,10 @@ Class RestComponent extends Object {
 				}
 				$str = join(' ', $parts);
 				parse_str($str, $this->_credentials);
+
+				if (!isset($this->_credentials[$this->_settings['auth']['fields']['class']])) {
+					$this->_credentials[$this->_settings['auth']['fields']['class']] = $this->_settings['ratelimit']['default'];
+				}
 
 				$this->log(array(
 					'username' => $this->_credentials[$this->_settings['auth']['fields']['username']],
