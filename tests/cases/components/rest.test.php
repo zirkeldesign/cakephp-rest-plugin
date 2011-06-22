@@ -42,16 +42,15 @@ class TestRestController extends AppController {
  * @author Kevin van Zonneveld
  */
 class RestComponentTestCase extends CakeTestCase {
+
+	public $settings = array();
+
 	public function startTest() {
 		$this->Rest = new MockRestComponent();
 		$this->Controller = new TestRestController();
 		$this->Controller->constructClasses();
 		$this->Controller->params['url']['ext'] = 'json';
-
-	}
-
-	public function testInitialize() {
-		$settings = array(
+		$this->settings = array(
 			'debug' => 2,
 			'extensions' => array('xml', 'json'),
 			'view' => array(
@@ -61,13 +60,21 @@ class RestComponentTestCase extends CakeTestCase {
 				'extract' => array('rows.{n}.DnsDomain' => 'dns_domains'),
 			),
 		);
-		$this->Rest->initialize($this->Controller, $settings);
+	}
 
-		$this->assertEqual($this->Controller->viewVars['debug'], $settings['debug']);
-		$this->assertEqual(Configure::read('debug'), $settings['debug']);
+	public function testInitialize() {
+		$this->Rest->initialize($this->Controller, $this->settings);
+		$this->assertEqual($this->Controller->viewVars['debug'], $this->settings['debug']);
 	}
 
 	public function testIsActive() {
+		$this->Rest->initialize($this->Controller, $this->settings);
+		$this->assertTrue($this->Rest->isActive());
+
+		$this->Rest->isActive = false;
+		$this->assertFalse($this->Rest->isActive());
+
+		$this->Rest->isActive = null;
 		$this->assertTrue($this->Rest->isActive());
 	}
 
