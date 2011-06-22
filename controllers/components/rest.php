@@ -108,6 +108,12 @@ Class RestComponent extends Object {
 		'catchredir' => false,
 	);
 
+/**
+ * Should the rest plugin be active?
+ *
+ * @var string
+ */
+	public $isActive = null;
 
 	public function initialize (&$Controller, $settings = array()) {
 		$this->Controller = $Controller;
@@ -631,28 +637,26 @@ Class RestComponent extends Object {
 	}
 
 	public function isActive () {
-		static $isActive;
-		if (!isset($isActive)) {
+		if ($this->isActive === null) {
 			if (!isset($this->Controller) || !is_object($this->Controller)) {
 				return false;
 			}
 
-			if (@$this->_settings['onlyActiveWithAuth'] === true) {
-				if (isset($this->_settings['auth']['keyword']) && strpos(@$_SERVER['HTTP_AUTHORIZATION'], $this->_settings['auth']['keyword']) === 0) {
-					$isActive = true;
+			if ($this->_settings['onlyActiveWithAuth'] === true) {
+				$keyword = $this->_settings['auth']['keyword'];
+				if ($keyword && strpos($this->settings['authHeader'], $keyword) === 0) {
+					return $this->isActive = true;
 				} else {
-					$isActive = false;
+					return $this->isActive = false;
 				}
 			}
 
-			if (!isset($isActive)) {
-				$isActive = in_array(
-					$this->Controller->params['url']['ext'],
-					$this->_settings['extensions']
-				);
-			}
+			return $this->isActive = in_array(
+				$this->Controller->params['url']['ext'],
+				$this->_settings['extensions']
+			);
 		}
-		return $isActive;
+		return $this->isActive;
 	}
 
 	public function error ($format, $arg1 = null, $arg2 = null) {
