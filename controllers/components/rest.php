@@ -1,32 +1,4 @@
 <?php
-if (!function_exists('pr')) {
-	/**
-	 * Shortcut function for quickly debugging data.
-	 *
-	 * @param mixed $arr
-	 */
-	function pr($arr) {
-		return debug($arr);
-		// or:
-		if (is_array($arr) && count($arr)) {
-			print_r($arr);
-		} else {
-			var_dump($arr);
-		}
-		echo "\n";
-	}
-}
-if (!function_exists('prd')) {
-	/**
-	 * Shortcut function for quickly debugging data, then dying.
-	 *
-	 * @param mixed $arr
-	 */
-	function prd($arr) {
-		pr($arr);
-		die();
-	}
-}
 Class RestComponent extends Object {
 	public $codes = array(
 		200 => 'OK',
@@ -578,8 +550,6 @@ Class RestComponent extends Object {
 
 					foreach ($Controller->components['Rest.Rest'] as $action => $vars) {
 						if (substr($action, 0, 1) !== '_' && in_array($action, $Controller->methods)) {
-							#$debug && prd(compact('controller', 'action'));
-							#$debug && prd($this->_settings['exposeVars']);
 							$saveVars = array();
 
 							$exposeVars = array_merge(
