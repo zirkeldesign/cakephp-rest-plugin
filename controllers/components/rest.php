@@ -91,6 +91,19 @@ Class RestComponent extends Object {
 			'model' => 'Rest.RestLog',
 			'dump' => true, // Saves entire in + out dumps in log. Also see config/schema/rest_logs.sql
 		),
+		'meta' => array(
+			'requestKeys' => array(
+				'HTTP_HOST',
+				'HTTP_USER_AGENT',
+				'REMOTE_ADDR',
+				'REQUEST_METHOD',
+				'REQUEST_TIME',
+				'REQUEST_URI',
+				'SERVER_ADDR',
+				'SERVER_PROTOCOL',
+			)
+		),
+		
 		'ratelimit' => array(
 			'classlimits' => array(
 				'Employee' => array('-1 hour', 1000),
@@ -106,6 +119,7 @@ Class RestComponent extends Object {
 		'debug' => 0,
 		'onlyActiveWithAuth' => false,
 		'catchredir' => false,
+		'ratelimiter' => true
 	);
 
 /**
@@ -217,30 +231,31 @@ Class RestComponent extends Object {
 		}
 
 		// Rate Limit
-		$credentials = $this->credentials();
-		$class		 = @$credentials['class'];
-		if (!$class) {
-			$this->warning('Unable to establish class');
-		} else {
-			list($time, $max) = $this->_settings['ratelimit']['classlimits'][$class];
+		if ($this->_settings['ratelimiter']) {		
+			$credentials = $this->credentials();
+			$class		 = @$credentials['class'];
+			if (!$class) {
+				$this->warning('Unable to establish class');
+			} else {
+				list($time, $max) = $this->_settings['ratelimit']['classlimits'][$class];
 
-			$cbMax = $this->cbRestRatelimitMax($credentials);
-			if ($cbMax) {
-				$max = $cbMax;
-			}
+				$cbMax = $this->cbRestRatelimitMax($credentials);
+				if ($cbMax) {
+					$max = $cbMax;
+				}
 
-			if (true !== ($count = $this->ratelimit($time, $max))) {
-				$msg = sprintf(
-					'You have reached your ratelimit (%s is more than the allowed %s requests in %s)',
-					$count,
-					$max,
-					str_replace('-', '', $time)
-				);
-				$this->log('ratelimited', 1);
-				return $this->abort($msg);
+				if (true !== ($count = $this->ratelimit($time, $max))) {
+					$msg = sprintf(
+						'You have reached your ratelimit (%s is more than the allowed %s requests in %s)',
+						$count,
+						$max,
+						str_replace('-', '', $time)
+					);
+					$this->log('ratelimited', 1);
+					return $this->abort($msg);
+				}
 			}
 		}
-
 		if ($this->_settings['viewsFromPlugin']) {
 			// Setup the controller so it can use
 			// the view inside this plugin
@@ -314,6 +329,12 @@ Class RestComponent extends Object {
 	protected function _modelizePost (&$data) {
 		if (!is_array($data)) {
 			return $data;
+		}
+		
+		// Don't throw errors if data is already modelized
+		// f.e. sending a serialized FormHelper form via ajax 
+		if (isset($data[$this->Controller->modelClass])) {
+			$data = $data[$this->Controller->modelClass];
 		}
 
 		// Protected against Saving multiple models in one post
@@ -658,7 +679,12 @@ Class RestComponent extends Object {
 		}
 		return $this->isActive;
 	}
-
+	public function validate ($format, $arg1 = null, $arg2 = null) {
+		$args = func_get_args();
+		if (count($args) > 1) $format = vsprintf($format, $args);
+		$this->_feedback[__FUNCTION__][] = $format;
+		return false;
+	}
 	public function error ($format, $arg1 = null, $arg2 = null) {
 		$args = func_get_args();
 		if (count($args) > 1) $format = vsprintf($format, $args);
@@ -738,18 +764,22 @@ Class RestComponent extends Object {
 	 * @return array
 	 */
 	public function response ($data = array()) {
+		
+
+		// In case of edit, return what post data was received
+		if (empty($data) && !empty($this->postData)) {
+			$data = $this->postData;
+			
+			// import validation errors
+			$modelClass = $this->Controller->modelClass;
+			$modelErrors = $this->Controller->{$modelClass}->validationErrors;	
+			
+			if (!empty($modelErrors)) 
+				$this->validate($modelErrors);	
+		}
 		$feedback   = $this->getFeedBack(true);
 
-		$serverKeys = array_flip(array(
-			'HTTP_HOST',
-			'HTTP_USER_AGENT',
-			'REMOTE_ADDR',
-			'REQUEST_METHOD',
-			'REQUEST_TIME',
-			'REQUEST_URI',
-			'SERVER_ADDR',
-			'SERVER_PROTOCOL',
-		));
+		$serverKeys = array_flip($this->_settings['meta']['requestKeys']);
 		$server = array_intersect_key($_SERVER, $serverKeys);
 		foreach ($server as $k=>$v) {
 			if ($k === ($lc = strtolower($k))) {
@@ -758,13 +788,11 @@ Class RestComponent extends Object {
 			$server[$lc] = $v;
 			unset($server[$k]);
 		}
+		
+		$hasErrors = count(@$this->_feedback['error']);
+		$hasValidationErrors = count(@$this->_feedback['validate']);
 
-		// In case of edit, return what post data was received
-		if (empty($data) && !empty($this->postData)) {
-			$data = $this->postData;
-		}
-
-		$status = count(@$this->_feedback['error'])
+		$status = ($hasErrors || $hasValidationErrors)
 			? 'error'
 			: 'ok';
 
