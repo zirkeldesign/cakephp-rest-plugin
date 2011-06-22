@@ -114,8 +114,8 @@ Class RestComponent extends Object {
 			'ip_limit' => array('-1 hour', 60),  // For those not logged in
 		),
 		'version' => '0.3',
-		'view' => array(
-			'extract' => array(),
+		'extract' => array(
+			'view' => array(),
 		),
 		'debug' => 0,
 		'onlyActiveWithAuth' => false,
@@ -276,7 +276,7 @@ Class RestComponent extends Object {
 		if (!$this->isActive()) return;
 
 		$data = $this->inject(
-			(array)@$this->_settings[$this->Controller->action]['extract'],
+			(array)@$this->_settings['extract'][$this->Controller->action],
 			$this->Controller->viewVars
 		);
 
@@ -568,7 +568,7 @@ Class RestComponent extends Object {
 			// Instantiate all remaining controllers and check components
 			foreach ($controllers as $controller) {
 				$className = $controller.'Controller';
-				#$debug = 'MonitoringServices' === $controller;
+
 				$debug = false;
 				if (!class_exists($className)) {
 					if (!App::import('Controller', $controller)) {

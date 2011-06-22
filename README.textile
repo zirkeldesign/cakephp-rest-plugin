@@ -111,8 +111,8 @@ class TweetsController extends AppController {
 	public $components = array (
 		'Rest.Rest' => array(
 			'catchredir' => true,
-			'index' => array(
-				'extract' => array('tweets'),
+			'extract' => array(
+				'index' => array('tweets'),
 			),
 		),
 	);
