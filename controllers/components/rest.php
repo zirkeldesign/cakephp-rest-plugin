@@ -103,7 +103,7 @@ Class RestComponent extends Object {
 				'SERVER_PROTOCOL',
 			)
 		),
-		
+
 		'ratelimit' => array(
 			'classlimits' => array(
 				'Employee' => array('-1 hour', 1000),
@@ -231,7 +231,7 @@ Class RestComponent extends Object {
 		}
 
 		// Rate Limit
-		if ($this->_settings['ratelimiter']) {		
+		if ($this->_settings['ratelimiter']) {
 			$credentials = $this->credentials();
 			$class		 = @$credentials['class'];
 			if (!$class) {
@@ -330,9 +330,9 @@ Class RestComponent extends Object {
 		if (!is_array($data)) {
 			return $data;
 		}
-		
+
 		// Don't throw errors if data is already modelized
-		// f.e. sending a serialized FormHelper form via ajax 
+		// f.e. sending a serialized FormHelper form via ajax
 		if (isset($data[$this->Controller->modelClass])) {
 			$data = $data[$this->Controller->modelClass];
 		}
@@ -764,18 +764,18 @@ Class RestComponent extends Object {
 	 * @return array
 	 */
 	public function response ($data = array()) {
-		
+
 
 		// In case of edit, return what post data was received
 		if (empty($data) && !empty($this->postData)) {
 			$data = $this->postData;
-			
+
 			// import validation errors
 			$modelClass = $this->Controller->modelClass;
-			$modelErrors = $this->Controller->{$modelClass}->validationErrors;	
-			
-			if (!empty($modelErrors)) 
-				$this->validate($modelErrors);	
+			$modelErrors = $this->Controller->{$modelClass}->validationErrors;
+
+			if (!empty($modelErrors))
+				$this->validate($modelErrors);
 		}
 		$feedback   = $this->getFeedBack(true);
 
@@ -788,7 +788,7 @@ Class RestComponent extends Object {
 			$server[$lc] = $v;
 			unset($server[$k]);
 		}
-		
+
 		$hasErrors = count(@$this->_feedback['error']);
 		$hasValidationErrors = count(@$this->_feedback['validate']);
 

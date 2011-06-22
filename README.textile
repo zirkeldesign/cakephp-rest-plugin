@@ -179,7 +179,7 @@ Example:
 
 <pre><code><?php
 class TweetsController extends AppController {
-	public $components = array ('Rest.Rest' => array);
+	public $components = array ('Rest.Rest');
 
 	public function beforeFilter () {
 		if (!$this->Auth->user()) {
