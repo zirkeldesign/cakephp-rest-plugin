@@ -17,33 +17,33 @@ class CsvView extends View {
 		return $this->encode($this->viewVars['response']);
 	}
 
-    /**
-     * create csv string from response
-     *
-     * @param array $response with 'meta' and 'data' part
-     * @return string
-     * @access public
-     **/
+	/**
+	 * create csv string from response
+	 *
+	 * @param array $response with 'meta' and 'data' part
+	 * @return string
+	 * @access public
+	 **/
 	public function encode ($response) {
-	    // if status ok then remove meta part. If not ok then only show status and feedback message
-	    if ($response['meta']['status'] == 'ok') {
-	        unset($response['meta']);
-	    } else {
-	        return 'status: '.$response['meta']['status']."\n".
-	            'message:'. $response['meta']['feedback']['message']."\n";
-	    }
-	    
-        // set everything from data part to one single one dimensional array
-        $data = $response['data'][$this->params['controller']];
-        unset($response);
-        // put headers from array keys as first row
-        $fields = array_keys($data[0]);
-        array_unshift($data, $fields);
-        // now make the csv file
-        $csv = '';
-        foreach ($data AS $rec) {
-            $csv .= $this->_putcsv($rec);
-        }
+		// if status ok then remove meta part. If not ok then only show status and feedback message
+		if ($response['meta']['status'] === 'ok') {
+			unset($response['meta']);
+		} else {
+			return 'status: '.$response['meta']['status'] . "\n" . 
+				'message:'. $response['meta']['feedback']['message'] . "\n";
+		}
+
+		// set everything from data part to one single one dimensional array
+		$data = $response['data'][$this->params['controller']];
+		unset($response);
+		// put headers from array keys as first row
+		$fields = array_keys($data[0]);
+		array_unshift($data, $fields);
+		// now make the csv file
+		$csv = '';
+		foreach ($data AS $rec) {
+			$csv .= $this->_putcsv($rec);
+		}
 		return $csv;
 	}
 	
@@ -58,23 +58,22 @@ class CsvView extends View {
 	 * @return string
 	 * @access private
 	 */
-	private function _putcsv($row, $delimiter = ';', $enclosure = '"', $eol = "\n") {
-        static $fp = false;
-        if ($fp === false) {
-            $fp = fopen('php://temp', 'r+');
-        }
-        else {
-            rewind($fp);
-        }
+	private function _putcsv ($row, $delimiter = ';', $enclosure = '"', $eol = "\n") {
+		static $fp = false;
+		if ($fp === false) {
+			$fp = fopen('php://temp', 'r+');
+		} else {
+			rewind($fp);
+		}
 
-        if (fputcsv($fp, $row, $delimiter, $enclosure) === false) {
-            return false;
-        }
-        rewind($fp);
-        $csv = fgets($fp);
-        if ($eol != PHP_EOL) {
-            $csv = substr($csv, 0, (0 - strlen(PHP_EOL))) . $eol;
-        }
-        return $csv;
-    }
+		if (fputcsv($fp, $row, $delimiter, $enclosure) === false) {
+			return false;
+		}
+		rewind($fp);
+		$csv = fgets($fp);
+		if ($eol != PHP_EOL) {
+			$csv = substr($csv, 0, (0 - strlen(PHP_EOL))) . $eol;
+		}
+		return $csv;
+	}
 }
