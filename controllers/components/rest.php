@@ -102,7 +102,7 @@ Class RestComponent extends Object {
 				'REQUEST_URI',
 				'SERVER_ADDR',
 				'SERVER_PROTOCOL',
-			)
+			),
 		),
 		'ratelimit' => array(
 			'default' => 'Customer',
@@ -120,7 +120,7 @@ Class RestComponent extends Object {
 		'debug' => 0,
 		'onlyActiveWithAuth' => false,
 		'catchredir' => false,
-		'ratelimiter' => true
+		'ratelimiter' => true,
 	);
 
 /**
@@ -791,16 +791,16 @@ Class RestComponent extends Object {
 			}
 
 		}
-		$feedback   = $this->getFeedBack(true);
+		$feedback = $this->getFeedBack(true);
 
-		$hasErrors = count(@$this->_feedback['error']);
+		$hasErrors           = count(@$this->_feedback['error']);
 		$hasValidationErrors = count(@$this->_feedback['validate']);
 
 		$status = ($hasErrors || $hasValidationErrors)
 			? 'error'
 			: 'ok';
 
-		$time	 = time();
+		$time     = time();
 		$response = compact('data');
 
 		if ($this->_settings['meta']['enable']) {
@@ -869,7 +869,7 @@ Class RestComponent extends Object {
 			return $base;
 		}
 
-		$className = $base .'View';
+		$className = $base . 'View';
 
 		if (!class_exists($className)) {
 			$pluginRoot = dirname(dirname(dirname(__FILE__)));
