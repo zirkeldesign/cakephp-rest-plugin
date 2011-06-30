@@ -21,8 +21,8 @@ class CsvView extends View {
 	 * create csv string from response
 	 *
 	 * @param array $response with 'meta' and 'data' part
+	 * 
 	 * @return string
-	 * @access public
 	 **/
 	public function encode ($response) {
 		// if status ok then remove meta part. If not ok then only show status and feedback message
@@ -51,12 +51,12 @@ class CsvView extends View {
 	 * Creating a file resource to php://temp so we don;t save a real file and 
 	 * return the string of that csv line
 	 *
-	 * @param array $row 
+	 * @param array  $row
 	 * @param string $delimiter
 	 * @param string $enclosure 
-	 * @param string $eol 
+	 * @param string $eol
+	 *
 	 * @return string
-	 * @access private
 	 */
 	private function _putcsv ($row, $delimiter = ';', $enclosure = '"', $eol = "\n") {
 		static $fp = false;
