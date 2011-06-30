@@ -773,12 +773,23 @@ Class RestComponent extends Object {
 		if (empty($data) && !empty($this->postData)) {
 			$data = $this->postData;
 
-			// import validation errors
-			$modelClass = $this->Controller->modelClass;
-			$modelErrors = $this->Controller->{$modelClass}->validationErrors;
+			// In case of add, enrich the postdata with the primary key of the
+			// added record. Nice if you e.g. first create a parent, and then
+			// immediately need the ID to add it's children
+			if (!empty($this->Controller->modelClass)) {
+				$modelClass = $this->Controller->modelClass;
+				if (!empty($data[$modelClass]) && ($Model = @$this->Controller->{$modelClass})) {
+					if (empty($data[$modelClass][$Model->primaryKey]) && $Model->id) {
+						$data[$modelClass][$Model->primaryKey] = $Model->id;
+					}
+				}
 
-			if (!empty($modelErrors))
-				$this->validate($modelErrors);
+				// import validation errors
+				if (($modelErrors = @$this->Controller->{$modelClass}->validationErrors)) {
+					$this->validate($modelErrors);
+				}
+			}
+
 		}
 		$feedback   = $this->getFeedBack(true);
 
