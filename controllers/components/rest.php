@@ -584,15 +584,16 @@ Class RestComponent extends Object {
 					$exposeActions = array();
 
 					foreach ($this->_settings['actions'] as $action => $vars) {
-//						if (!in_array($action, $Controller->methods)) {
-//							return $this->abort(sprintf(
-//								'Rest component is expecting a "%s" action but got "%s" instead. ' .
-//								'You probably upgraded your component without reading the backward compatiblity ' .
-//								'warnings in the readme file.',
-//								$Controller->name,
-//								$action
-//							));
-//						}
+						if (!in_array($action, $Controller->methods)) {
+							$this->debug(sprintf(
+								'Rest component is expecting a "%s" action but got "%s" instead. ' .
+								'You probably upgraded your component without reading the backward compatiblity ' .
+								'warnings in the readme file.',
+								$Controller->name,
+								$action
+							));
+							continue;
+						}
 						$saveVars = array();
 
 						$exposeVars = array_merge(
