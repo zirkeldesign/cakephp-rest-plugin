@@ -58,7 +58,7 @@ class CsvView extends View {
 	 *
 	 * @return string
 	 */
-	private function _putcsv ($row, $delimiter = ';', $enclosure = '"', $eol = "\n") {
+	protected function _putcsv ($row, $delimiter = ';', $enclosure = '"', $eol = "\n") {
 		static $fp = false;
 		if ($fp === false) {
 			$fp = fopen('php://temp', 'r+');
