@@ -29,7 +29,7 @@ class BluntXml {
 			return false;
 		}
 
-		$array		= $this->_toArray($obj);
+		$array      = $this->_toArray($obj);
 		$unitemized = $this->_unitemize($array);
 
 		return $unitemized;
