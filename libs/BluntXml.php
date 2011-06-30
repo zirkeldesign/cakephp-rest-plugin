@@ -199,7 +199,7 @@ class BluntXml {
 		if ($data === 'NULL') {
 			return null;
 		}
-		return $data;
+		return html_entity_decode($data, ENT_COMPAT, 'UTF-8');
 	}
 
 	/**
