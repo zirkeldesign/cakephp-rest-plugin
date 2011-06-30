@@ -17,6 +17,17 @@ class CsvView extends View {
 		return $this->encode($this->viewVars['response']);
 	}
 
+	public function headers ($Controller, $settings) {
+		if ($settings['debug'] > 2) {
+			return null;
+		}
+
+		header('Content-Type: text/csv');
+		$Controller->RequestHandler->setContent('csv', 'text/csv');
+		$Controller->RequestHandler->respondAs('csv');
+		return true;
+	}
+
 	/**
 	 * create csv string from response
 	 *

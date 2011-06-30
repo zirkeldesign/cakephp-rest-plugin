@@ -19,6 +19,17 @@ class XmlView extends View {
 		return $this->encode($this->viewVars['response']);
 	}
 
+	public function headers ($Controller, $settings) {
+		if ($settings['debug'] > 2) {
+			return null;
+		}
+
+		header('Content-Type: text/xml');
+		$Controller->RequestHandler->setContent('xml', 'text/xml');
+		$Controller->RequestHandler->respondAs('xml');
+		return true;
+	}
+
 	public function encode ($response) {
 		require_once dirname(dirname(__FILE__)) . '/libs/BluntXml.php';
 		$this->BluntXml = new BluntXml();

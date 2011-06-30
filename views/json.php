@@ -27,6 +27,17 @@ class JsonView extends View {
 		}
 	}
 
+	public function headers ($Controller, $settings) {
+		if ($settings['debug'] > 2) {
+			return null;
+		}
+
+		header('Content-Type: text/javascript');
+		$Controller->RequestHandler->setContent('json', 'text/javascript');
+		$Controller->RequestHandler->respondAs('json');
+		return true;
+	}
+
 	public function encode ($response) {
 		return $this->json_format($this->_encode($response));
 	}

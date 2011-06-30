@@ -22,6 +22,7 @@ Class RestComponent extends Object {
 	public $postData;
 
 	protected $_RestLog;
+	protected $_View;
 	protected $_logData     = array();
 	protected $_feedback    = array();
 	protected $_credentials = array();
@@ -123,11 +124,11 @@ Class RestComponent extends Object {
 		'ratelimiter' => true,
 	);
 
-/**
- * Should the rest plugin be active?
- *
- * @var string
- */
+	/**
+	 * Should the rest plugin be active?
+	 *
+	 * @var string
+	 */
 	public $isActive = null;
 
 	public function initialize (&$Controller, $settings = array()) {
@@ -635,7 +636,9 @@ Class RestComponent extends Object {
 	 *
 	 * @return <type>
 	 */
-	public function headers ($ext = false) {
+	public function headers ($ext = null) {
+		return $this->View(true, $ext)->headers($this->Controller, $this->_settings);
+
 		if (!$ext) {
 			$ext = $this->Controller->params['url']['ext'];
 		}
@@ -644,20 +647,8 @@ Class RestComponent extends Object {
 		// Content-Type right;  so using header() for now instead
 		switch ($ext) {
 			case 'json':
-				// text/javascript
-				// application/json
-				if ($this->_settings['debug'] < 3) {
-					header('Content-Type: text/javascript');
-					$this->Controller->RequestHandler->setContent('json', 'text/javascript');
-					$this->Controller->RequestHandler->respondAs('json');
-				}
 				break;
 			case 'xml':
-				if ($this->_settings['debug'] < 3) {
-					header('Content-Type: text/xml');
-					$this->Controller->RequestHandler->setContent('xml', 'text/xml');
-					$this->Controller->RequestHandler->respondAs('xml');
-				}
 				break;
 		}
 	}
@@ -869,21 +860,23 @@ Class RestComponent extends Object {
 			return $base;
 		}
 
-		$className = $base . 'View';
+		// Keep 1 instance of the active View in ->_View
+		if (!$this->_View) {
+			$className = $base . 'View';
 
-		if (!class_exists($className)) {
-			$pluginRoot = dirname(dirname(dirname(__FILE__)));
-			$viewFile   = $pluginRoot . '/views/' . $ext . '.php';
-			require_once $viewFile;
+			if (!class_exists($className)) {
+				$pluginRoot = dirname(dirname(dirname(__FILE__)));
+				$viewFile   = $pluginRoot . '/views/' . $ext . '.php';
+				require_once $viewFile;
+			}
+
+			$this->_View = ClassRegistry::init('Rest.' . $className);
+			if (empty($this->_View->params)) {
+				$this->_View->params = $this->Controller->params;
+			}
 		}
 
-		$View = ClassRegistry::init('Rest.'.$className);
-		if (empty($View->params)) {
-			$View->params = $this->Controller->params;
-		}
-
-
-		return $View;
+		return $this->_View;
 	}
 
 	public function beforeRedirect (&$Controller, $url, $status = null, $exit = true) {
