@@ -22,6 +22,20 @@ For best results, 2 changes to your application have to be made:
 * A check if REST is active inside your error handler & @redirect()@
 * Resource mapping in your router (see docs below)
 
+h2. Warning - Backwards compatibility breakage
+
+* Action variables are now all contained in 1 big 'actions' setting, instead
+  of directly under settings, as to avoid setting vs action collision.
+  Behavior changed since "pull 15":https://github.com/kvz/cakephp-rest-plugin/pull/15  
+  If you don't change your controllers to reflect that, your API will break.
+  "This":https://github.com/kvz/cakephp-rest-plugin/commit/e70728fe98ac442d546e08836a5b388aff0ef1ec
+  is your last _good_ version.
+  These settings have moved likewise:
+  * @->{$action}['extract']@ @->actions[$action]['extract']@
+  * @->{$action}['id']@ @->actions[$action]['id']@
+  * @->{$action}['scopeVar']@ @->actions[$action]['scopeVar']@
+  * @->{$action}['method']@ @->actions[$action]['method']@
+
 h2. Requirements
 
 * PHP 5.2.6+ or the PECL json package

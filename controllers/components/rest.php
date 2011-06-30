@@ -115,8 +115,10 @@ Class RestComponent extends Object {
 			'ip_limit' => array('-1 hour', 60),  // For those not logged in
 		),
 		'version' => '0.3',
-		'extract' => array(
-			'view' => array(),
+		'actions' => array(
+			'view' => array(
+				'extract' => array(),
+			),
 		),
 		'debug' => 0,
 		'onlyActiveWithAuth' => false,
@@ -277,7 +279,7 @@ Class RestComponent extends Object {
 		if (!$this->isActive()) return;
 
 		$data = $this->inject(
-			(array)@$this->_settings['extract'][$this->Controller->action],
+			(array)@$this->_settings['actions'][$this->Controller->action]['extract'],
 			$this->Controller->viewVars
 		);
 
@@ -578,43 +580,50 @@ Class RestComponent extends Object {
 				}
 				$Controller = new $className();
 
-				if (isset($Controller->components['Rest.Rest']) && is_array($Controller->components['Rest.Rest'])) {
-					$actions = array();
+				if (isset($this->_settings['actions']) && is_array($this->_settings['actions'])) {
+					$exposeActions = array();
 
-					foreach ($Controller->components['Rest.Rest'] as $action => $vars) {
-						if (substr($action, 0, 1) !== '_' && in_array($action, $Controller->methods)) {
-							$saveVars = array();
+					foreach ($this->_settings['actions'] as $action => $vars) {
+//						if (!in_array($action, $Controller->methods)) {
+//							return $this->abort(sprintf(
+//								'Rest component is expecting a "%s" action but got "%s" instead. ' .
+//								'You probably upgraded your component without reading the backward compatiblity ' .
+//								'warnings in the readme file.',
+//								$Controller->name,
+//								$action
+//							));
+//						}
+						$saveVars = array();
 
-							$exposeVars = array_merge(
-								$this->_settings['exposeVars']['*'],
-								isset($this->_settings['exposeVars'][$action]) ? $this->_settings['exposeVars'][$action] : array()
-							);
+						$exposeVars = array_merge(
+							$this->_settings['exposeVars']['*'],
+							isset($this->_settings['exposeVars'][$action]) ? $this->_settings['exposeVars'][$action] : array()
+						);
 
-							foreach ($exposeVars as $exposeVar => $example) {
-								if (isset($vars[$exposeVar])) {
-									$saveVars[$exposeVar] = $vars[$exposeVar];
+						foreach ($exposeVars as $exposeVar => $example) {
+							if (isset($vars[$exposeVar])) {
+								$saveVars[$exposeVar] = $vars[$exposeVar];
+							} else {
+								if (isset($this->_settings['defaultVars'][$action][$exposeVar])) {
+									$saveVars[$exposeVar] = $this->_settings['defaultVars'][$action][$exposeVar];
 								} else {
-									if (isset($this->_settings['defaultVars'][$action][$exposeVar])) {
-										$saveVars[$exposeVar] = $this->_settings['defaultVars'][$action][$exposeVar];
-									} else {
-										return $this->abort(sprintf(
-											'Rest maintainer needs to set "%s" for %s using ' .
-											'%s->components->Rest.Rest->%s[\'%s\'] = %s',
-											$exposeVar,
-											$action,
-											$className,
-											$action,
-											$exposeVar,
-											$example
-										));
-									}
+									return $this->abort(sprintf(
+										'Rest maintainer needs to set "%s" for %s using ' .
+										'%s->components->Rest.Rest->actions[\'%s\'][\'%s\'] = %s',
+										$exposeVar,
+										$action,
+										$className,
+										$action,
+										$exposeVar,
+										$example
+									));
 								}
 							}
-							$actions[$action] = $saveVars;
 						}
+						$exposeActions[$action] = $saveVars;
 					}
 
-					$restControllers[$controller] = $actions;
+					$restControllers[$controller] = $exposeActions;
 				}
 				unset($Controller);
 			}
@@ -638,19 +647,6 @@ Class RestComponent extends Object {
 	 */
 	public function headers ($ext = null) {
 		return $this->View(true, $ext)->headers($this->Controller, $this->_settings);
-
-		if (!$ext) {
-			$ext = $this->Controller->params['url']['ext'];
-		}
-
-		// Don't know why,  but RequestHandler isn't settings
-		// Content-Type right;  so using header() for now instead
-		switch ($ext) {
-			case 'json':
-				break;
-			case 'xml':
-				break;
-		}
 	}
 
 	public function isActive () {
@@ -661,7 +657,7 @@ Class RestComponent extends Object {
 
 			if ($this->_settings['onlyActiveWithAuth'] === true) {
 				$keyword = $this->_settings['auth']['keyword'];
-				if ($keyword && strpos($this->settings['authHeader'], $keyword) === 0) {
+				if ($keyword && strpos(@$_SERVER['HTTP_AUTHORIZATION'], $keyword) === 0) {
 					return $this->isActive = true;
 				} else {
 					return $this->isActive = false;
