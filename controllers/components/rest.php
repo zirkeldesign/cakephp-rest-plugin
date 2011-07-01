@@ -580,17 +580,19 @@ Class RestComponent extends Object {
 				}
 				$Controller = new $className();
 
-				if (isset($this->_settings['actions']) && is_array($this->_settings['actions'])) {
-					$exposeActions = array();
 
-					foreach ($this->_settings['actions'] as $action => $vars) {
+				if (isset($Controller->components['Rest.Rest']['actions']) && is_array($Controller->components['Rest.Rest']['actions'])) {
+					$exposeActions = array();
+					foreach ($Controller->components['Rest.Rest']['actions'] as $action => $vars) {
 						if (!in_array($action, $Controller->methods)) {
 							$this->debug(sprintf(
 								'Rest component is expecting a "%s" action but got "%s" instead. ' .
 								'You probably upgraded your component without reading the backward compatiblity ' .
-								'warnings in the readme file.',
+								'warnings in the readme file, or just did not implement the "%s" action in the "%s" controller yet',
 								$Controller->name,
-								$action
+								$action,
+								$action,
+								$Controller->name
 							));
 							continue;
 						}
