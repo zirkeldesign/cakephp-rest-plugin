@@ -677,7 +677,7 @@ Class RestComponent extends Object {
 	public function validate ($format, $arg1 = null, $arg2 = null) {
 		$args = func_get_args();
 		if (count($args) > 1) $format = vsprintf($format, $args);
-		$this->_feedback[__FUNCTION__][] = $format;
+		$this->_feedback['error'][] = 'validation: ' . $format;
 		return false;
 	}
 	public function error ($format, $arg1 = null, $arg2 = null) {
