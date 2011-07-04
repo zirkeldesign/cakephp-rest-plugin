@@ -776,6 +776,9 @@ Class RestComponent extends Object {
 
 				// import validation errors
 				if (($modelErrors = @$this->Controller->{$modelClass}->validationErrors)) {
+					if (is_array($modelErrors)) {
+						$modelErrors = join('; ', $modelErrors);
+					}
 					$this->validate($modelErrors);
 				}
 			}
