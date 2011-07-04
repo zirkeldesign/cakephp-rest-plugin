@@ -21,7 +21,7 @@ class JsonView extends View {
 		}
 		// JSONP: Wrap in callback function if requested
 		if (array_key_exists('callbackFunc', $this->viewVars)) {
-			return $this->viewVars['callbackFunc'].'('.$this->encode($this->viewVars['response']).');';
+			return $this->viewVars['callbackFunc'] . '(' . $this->encode($this->viewVars['response']) . ');';
 		} else {
 			return $this->encode($this->viewVars['response']);
 		}
@@ -38,8 +38,11 @@ class JsonView extends View {
 		return true;
 	}
 
-	public function encode ($response) {
-		return $this->json_format($this->_encode($response));
+	public function encode ($response, $pretty = true) {
+		if ($pretty) {
+			return $this->json_format($this->_encode($response));
+		}
+		return $this->_encode($response);
 	}
 
 	/**

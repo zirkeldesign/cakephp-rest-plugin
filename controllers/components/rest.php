@@ -90,7 +90,13 @@ Class RestComponent extends Object {
 		),
 		'log' => array(
 			'model' => 'Rest.RestLog',
-			'dump' => true, // Saves entire in + out dumps in log. Also see config/schema/rest_logs.sql
+			'pretty' => true,
+			// Optionally, choose to store some log fields on disk, instead of in the database
+			'fields' => array(
+				'data_in' => '{LOGS}rest-{date_Y}_{date_m}/{username}_{id}_1_{field}.log',
+				'meta' => '{LOGS}rest-{date_Y}_{date_m}/{username}_{id}_2_{field}.log',
+				'data_out' => '{LOGS}rest-{date_Y}_{date_m}/{username}_{id}_3_{field}.log',
+			),
 		),
 		'meta' => array(
 			'enable' => true,
@@ -428,6 +434,8 @@ Class RestComponent extends Object {
 	public function RestLog () {
 		if (!$this->_RestLog) {
 			$this->_RestLog = ClassRegistry::init($this->_settings['log']['model']);
+			$this->_RestLog->restLogSettings = $this->_settings['log'];
+			$this->_RestLog->Encoder = $this->View(true);
 		}
 
 		return $this->_RestLog;
@@ -824,16 +832,14 @@ Class RestComponent extends Object {
 			}
 		}
 
-		if (!empty($this->_settings['log']['dump'])) {
-			$dump = array(
-				'data_in' => json_encode($this->postData),
-				'data_out' => json_encode($response['data']),
-			);
-			if ($this->_settings['meta']['enable']) {
-				$dump['meta'] = json_encode($response['meta']);
-			}
-			$this->log($dump);
+		$dump = array(
+			'data_in' => $this->postData,
+			'data_out' => $response['data'],
+		);
+		if ($this->_settings['meta']['enable']) {
+			$dump['meta'] = $response['meta'];
 		}
+		$this->log($dump);
 
 		return $response;
 	}
