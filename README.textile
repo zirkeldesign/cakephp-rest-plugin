@@ -4,7 +4,13 @@ Painless REST server Plugin for CakePHP
 
 h2. Background
 
-The "CakePHP REST Plugin":http://kevin.vanzonneveld.net/techblog/article/cakephp_rest_plugin_presentation/ takes whatever your existing controller actions gather in viewvars, reformats it in json or xml, and outputs it to the client. Because you hook it into existing actions, you only have to write your features once, and this plugin will just unlock them as API. The plugin knows it's being called by looking at the extension in the url: @.json@ or @.xml@.
+The "CakePHP REST Plugin":http://kevin.vanzonneveld.net/techblog/article/cakephp_rest_plugin_presentation/
+takes whatever your existing controller actions gather in viewvars, reformats
+it in json, csv or xml, and outputs it to the client. Because you hook it into
+existing actions, you only have to write your features once, and this plugin
+will just unlock them as API. The plugin knows it's being called by looking at
+the extension in the url: @.json@, @.csv@ or @.xml@ and optionally at
+the @Authorization:@ header.
 
 So, if you've already coded @/servers/reboot/2@, you can have:
 
@@ -13,9 +19,13 @@ So, if you've already coded @/servers/reboot/2@, you can have:
 
 ..up & running in no time.
 
-CakePHP REST Plugin can even change the structure of your existing viewvars using bi-directional xpaths. This way you can extract info using an xpath, and output it to your API clients using another xpath. If this doesn't make any sense, please have a look at the examples.
+CakePHP REST Plugin can even change the structure of your existing viewvars
+using bi-directional xpaths. This way you can extract info using an xpath,
+and output it to your API clients using another xpath. If this doesn't make any sense,
+please have a look at the examples.
 
-You can attach the @RestComponent@ to a controller, but you can limit REST activity to a single action.
+You can attach the @RestComponent@ to a controller, but you can limit REST
+activity to a single action.
 
 For best results, 2 changes to your application have to be made:
 
@@ -35,6 +45,9 @@ h2. Warning - Backwards compatibility breakage
   * @->{$action}['id']@ @->actions[$action]['id']@
   * @->{$action}['scopeVar']@ @->actions[$action]['scopeVar']@
   * @->{$action}['method']@ @->actions[$action]['method']@
+
+* Ratelimiter is now toggled with
+    @->ratelimit['enable']@ instead of @->ratelimiter@
 
 h2. Requirements
 
@@ -77,7 +90,8 @@ Do you run Apache? Make your @app/webroot/.htaccess@ look like so:
 	RewriteRule .* - [env=HTTP_AUTHORIZATION:%{HTTP:Authorization},last]
 </IfModule></code></pre>
 
-In my experience Nginx & FastCGI already make the HTTP_AUTHORIZATION available which is used to parse credentials for authentication.
+In my experience Nginx & FastCGI already make the HTTP_AUTHORIZATION
+available which is used to parse credentials for authentication.
 
 h2. Usage
 
@@ -116,7 +130,9 @@ class ServersController extends AppController {
 }
 ?></code></pre>
 
-@extract@ extracts variables you have in: @$this->viewVars@ and makes them available in the resulting XML or JSON under the name you specify in the value part.
+@extract@ extracts variables you have in: @$this->viewVars@ and makes them
+available in the resulting XML or JSON under the name you specify in the value
+part.
 
 Here's a more simple example of how you would use the viewVar @tweets@ **as-is**:
 
@@ -181,13 +197,22 @@ And when asked for the xml version, Rest Plugin would return this to your client
 </tweets_response>
 </code></pre>
 
-As you can see, the controller name + response is always the root element (for json there is no root element). Then the content is divived in @meta@ & @data@, and the latter is where your actual viewvars are stored. Meta is there to show any information regarding the validity of the request & response.
+As you can see, the controller name + response is always the root element
+(for json there is no root element). Then the content is divived in @meta@ & @data@,
+and the latter is where your actual viewvars are stored. Meta is there to show any
+information regarding the validity of the request & response.
 
 h3. Authorization
 
-Check the HTTP header as shown "here":http://docs.amazonwebservices.com/AmazonS3/latest/dev/index.html?RESTAuthentication.html. You can control the @authKeyword@ setting to control what keyword belongs to your REST API. By default it uses: TRUEREST. Have your users supply a header like: @Authorization: TRUEREST username=john&password=xxx&apikey=247b5a2f72df375279573f2746686daa@
+Check the HTTP header as shown "here":http://docs.amazonwebservices.com/AmazonS3/latest/dev/index.html?RESTAuthentication.html.
+You can control the @authKeyword@ setting to control what keyword belongs to your
+REST API. By default it uses: TRUEREST. Have your users supply a header like:
+@Authorization: TRUEREST username=john&password=xxx&apikey=247b5a2f72df375279573f2746686daa@
 
-Now, inside your controller these variables will be available by calling @$this->Rest->credentials()@. This plugin only handles the parsing of the header, and passes the info on to your app. So login anyone with e.g. @$this->Auth->login()@ and the information you retrieved from @$this->Rest->credentials()@;
+Now, inside your controller these variables will be available by calling 
+@$this->Rest->credentials()@. This plugin only handles the parsing of the header,
+and passes the info on to your app. So login anyone with e.g. @$this->Auth->login()@
+and the information you retrieved from @$this->Rest->credentials()@;
 
 Example:
 
@@ -219,7 +244,8 @@ class TweetsController extends AppController {
 
 h3. Schema
 
-If you're going to make use of this plugin's Logging & Ratelimitting (default) and you should run the database schema found in: @config/schema/rest_logs.sql@.
+If you're going to make use of this plugin's Logging & Ratelimitting (default)
+and you should run the database schema found in: @config/schema/rest_logs.sql@.
 
 h3. Router
 
@@ -234,7 +260,8 @@ Router::parseExtensions('rss', 'json', 'xml', 'json', 'pdf');
 
 h3. Callbacks
 
-If you're using the built-in ratelimiter, you may still want a little control yourself. I provide that in the form of 4 callbacks:
+If you're using the built-in ratelimiter, you may still want a little control
+yourself. I provide that in the form of 4 callbacks:
 
 <pre><code><?php
 class TweetsController extends AppController {
@@ -248,7 +275,8 @@ class TweetsController extends AppController {
 
 That will be called in you AppController if they exists.
 
-You may want to give a specific user a specific ratelimit. In that case you can use the following callback in your User Model:
+You may want to give a specific user a specific ratelimit. In that case you can
+use the following callback in your User Model:
 
 <pre><code><?php
 class TweetsController extends AppController {
@@ -257,7 +285,8 @@ class TweetsController extends AppController {
 	public function restRatelimitMax ($Rest, $credentials = array()) { }
 ?></code></pre>
 
-And for that user the return value of the callback will be used instead of the general class limit you could have specified in the settings.
+And for that user the return value of the callback will be used instead of the
+general class limit you could have specified in the settings.
 
 h3. Customizing callback
 
@@ -284,9 +313,13 @@ If the resolved callback is a string we assume it's a method in the calling cont
 
 h3. JSONP support
 
-"Thanks to":https://github.com/kvz/cakephp-rest-plugin/pull/3#issuecomment-883201 "Chris Toppon":http://www.supermethod.com/, there now also is "JSONP":http://en.wikipedia.org/wiki/JSON#JSONP support out of the box.
+"Thanks to":https://github.com/kvz/cakephp-rest-plugin/pull/3#issuecomment-883201
+"Chris Toppon":http://www.supermethod.com/, there now also is
+"JSONP":http://en.wikipedia.org/wiki/JSON#JSONP support out of the box.
 
-No extra PHP code or configuration is required on the server side with this patch, just supply either the parameter @callback@ or @jsoncallback@ to the JSON url provided by your plugin and the output will be wrapped in mycallback as a function.
+No extra PHP code or configuration is required on the server side with this patch,
+just supply either the parameter @callback@ or @jsoncallback@ to the JSON url
+provided by your plugin and the output will be wrapped in mycallback as a function.
 
 For example:
 
@@ -312,7 +345,8 @@ But for cross-domain requests, use JSONP. jQuery will substitute @?@ with the ca
 Good explanations of typical JSONP usage here:
 
 * "What is JSONP?":http://remysharp.com/2007/10/08/what-is-jsonp/
-* "Cross-domain communications with JSONP, Part 1: Combine JSONP and jQuery to quickly build powerful mashups":http://www.ibm.com/developerworks/library/wa-aj-jsonp1/
+* "Cross-domain communications with JSONP, Part 1: Combine JSONP and jQuery to
+quickly build powerful mashups":http://www.ibm.com/developerworks/library/wa-aj-jsonp1/
 
 h2. Todo
 
@@ -353,6 +387,8 @@ Love this plugin? Consider "a big donation":http://pledgie.com/campaigns/12581 :
 
 
 h2. License
+
+Licensed under MIT
 
 Copyright (c) 2009-2011, Kevin van Zonneveld
 All rights reserved.

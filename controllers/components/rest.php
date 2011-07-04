@@ -112,6 +112,7 @@ Class RestComponent extends Object {
 			),
 		),
 		'ratelimit' => array(
+			'enable' => true,
 			'default' => 'Customer',
 			'classlimits' => array(
 				'Employee' => array('-1 hour', 1000),
@@ -129,7 +130,6 @@ Class RestComponent extends Object {
 		'debug' => 0,
 		'onlyActiveWithAuth' => false,
 		'catchredir' => false,
-		'ratelimiter' => true,
 	);
 
 	/**
@@ -241,7 +241,7 @@ Class RestComponent extends Object {
 		}
 
 		// Rate Limit
-		if ($this->_settings['ratelimiter']) {
+		if (@$this->_settings['ratelimit']['enable']) {
 			$credentials = $this->credentials();
 			$class		 = @$credentials['class'];
 			if (!$class) {
