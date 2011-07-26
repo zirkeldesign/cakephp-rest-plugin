@@ -149,7 +149,6 @@ Class RestComponent extends Object {
 		// Control Debug
 		$this->_settings['debug'] = (int)$this->_settings['debug'];
 		Configure::write('debug', $this->_settings['debug']);
-		$this->Controller->set('debug', $this->_settings['debug']);
 
 		// Set credentials
 		$this->credentials(true);
@@ -284,10 +283,14 @@ Class RestComponent extends Object {
 	public function beforeRender (&$Controller) {
 		if (!$this->isActive()) return;
 
-		$data = $this->inject(
-			(array)@$this->_settings['actions'][$this->Controller->action]['extract'],
-			$this->Controller->viewVars
-		);
+		if (false === ($extract = @$this->_settings['actions'][$this->Controller->action]['extract'])) {
+			$data = $this->Controller->viewVars;
+		} else {
+			$data = $this->inject(
+				(array)$extract,
+				$this->Controller->viewVars
+			);
+		}
 
 		$response = $this->response($data);
 
@@ -802,7 +805,12 @@ Class RestComponent extends Object {
 			: 'ok';
 
 		$time     = time();
-		$response = compact('data');
+
+		if (false === ($embed = @$this->_settings['actions'][$this->Controller->action]['embed'])) {
+			$response = $data;
+		} else {
+			$response = compact('data');
+		}		
 
 		if ($this->_settings['meta']['enable']) {
 			$serverKeys = array_flip($this->_settings['meta']['requestKeys']);
@@ -834,7 +842,7 @@ Class RestComponent extends Object {
 
 		$dump = array(
 			'data_in' => $this->postData,
-			'data_out' => $response['data'],
+			'data_out' => $data,
 		);
 		if ($this->_settings['meta']['enable']) {
 			$dump['meta'] = $response['meta'];
