@@ -316,7 +316,7 @@ h3. Configuration
 You can chose to override Rest's default configuration using a global:
 
 <pre><code><?php
-	Configure::read('Rest.settings', array(
+	Configure::write('Rest.settings', array(
 		'version' => '0.3',
 		'log' => array(
 			'pretty' => false,
