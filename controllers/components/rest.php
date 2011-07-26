@@ -141,7 +141,11 @@ Class RestComponent extends Object {
 
 	public function initialize (&$Controller, $settings = array()) {
 		$this->Controller = $Controller;
-		$this->_settings  = am($this->_settings, $settings);
+
+		if (is_array($config = Configure::read('Rest.settings'))) {
+			$this->_settings = Set::merge($this->_settings, $config);
+		}
+		$this->_settings = Set::merge($this->_settings, $settings);
 
 		if (!$this->isActive()) {
 			return;
