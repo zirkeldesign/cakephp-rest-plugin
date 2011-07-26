@@ -58,12 +58,13 @@ class RestLog extends RestAppModel {
 		foreach ($this->data[__CLASS__] as $field => $val) {
 			$vars['{' . $field . '}'] = $val;
 		}
-		foreach (array('Y', 'm', 'd', 'H', 'i', 's') as $dp) {
+		foreach (array('Y', 'm', 'd', 'H', 'i', 's', 'U') as $dp) {
 			$vars['{date_' . $dp . '}'] = date($dp);
 		}
 
 		$vars['{LOGS}'] = LOGS;
 		$vars['{id}'] = $this->id;
+		$vars['{controller}'] = Inflector::tableize(@$this->restLogSettings['controller']);
 
 		foreach ($this->filedata as $field => $val) {
 			$vars['{field}'] = $field;

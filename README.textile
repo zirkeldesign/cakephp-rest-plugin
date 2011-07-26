@@ -322,9 +322,9 @@ You can chose to override Rest's default configuration using a global:
 			'pretty' => false,
 			// Optionally, choose to store some log fields on disk, instead of in the database
 			'fields' => array(
-				'data_in' => '{LOGS}rest-{date_Y}_{date_m}/{username}_{id}_1_{field}.log',
-				'meta' => '{LOGS}rest-{date_Y}_{date_m}/{username}_{id}_2_{field}.log',
-				'data_out' => '{LOGS}rest-{date_Y}_{date_m}/{username}_{id}_3_{field}.log',
+				'data_in' => '/var/log/rest/{controller}/{date_Y}_{date_m}/{username}_{id}.log',
+				'meta' => '/var/log/rest/{controller}/{date_Y}_{date_m}/{username}_{id}.log',
+				'data_out' => '/var/log/rest/{controller}/{date_Y}_{date_m}/{username}_{id}.log',
 			),
 		),
 	));

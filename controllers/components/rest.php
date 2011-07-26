@@ -442,6 +442,7 @@ Class RestComponent extends Object {
 		if (!$this->_RestLog) {
 			$this->_RestLog = ClassRegistry::init($this->_settings['log']['model']);
 			$this->_RestLog->restLogSettings = $this->_settings['log'];
+			$this->_RestLog->restLogSettings['controller'] = $this->Controller->name;
 			$this->_RestLog->Encoder = $this->View(true);
 		}
 
