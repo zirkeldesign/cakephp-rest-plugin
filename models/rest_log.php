@@ -52,6 +52,8 @@ class RestLog extends RestAppModel {
 			return parent::beforeSave($created);
 		}
 
+		$vars = @$this->restLogSettings['vars'] ? @$this->restLogSettings['vars'] : array();
+
 		foreach ($this->filedata as $field => $val) {
 			$vars['{' . $field . '}'] = $val;
 		}

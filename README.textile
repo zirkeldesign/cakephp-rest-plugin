@@ -319,12 +319,15 @@ You can chose to override Rest's default configuration using a global:
 	Configure::write('Rest.settings', array(
 		'version' => '0.3',
 		'log' => array(
+			'vars' => array(
+				'{environment}' => Configure::read('App.short') . '-' . Configure::read('App.environment'),
+			),
 			'pretty' => false,
 			// Optionally, choose to store some log fields on disk, instead of in the database
 			'fields' => array(
-				'data_in' => '/var/log/rest/{controller}/{date_Y}_{date_m}/{username}_{id}.log',
-				'meta' => '/var/log/rest/{controller}/{date_Y}_{date_m}/{username}_{id}.log',
-				'data_out' => '/var/log/rest/{controller}/{date_Y}_{date_m}/{username}_{id}.log',
+				'data_in' => '/var/log/rest/{environment}/{controller}/{date_Y}_{date_m}/{username}_{id}.log',
+				'meta' => '/var/log/rest/{environment}/{controller}/{date_Y}_{date_m}/{username}_{id}.log',
+				'data_out' => '/var/log/rest/{environment}/{controller}/{date_Y}_{date_m}/{username}_{id}.log',
 			),
 		),
 	));
