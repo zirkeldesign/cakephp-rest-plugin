@@ -311,6 +311,43 @@ You can map callbacks to different places using the @callbacks@ setting like so:
 
 If the resolved callback is a string we assume it's a method in the calling controller.
 
+h3. Configuration
+
+You can chose to override Rest's default configuration using a global:
+
+<pre><code><?php
+	Configure::read('Rest.settings', array(
+		'version' => '0.3',
+		'log' => array(
+			'pretty' => false,
+			// Optionally, choose to store some log fields on disk, instead of in the database
+			'fields' => array(
+				'data_in' => '{LOGS}rest-{date_Y}_{date_m}/{username}_{id}_1_{field}.log',
+				'meta' => '{LOGS}rest-{date_Y}_{date_m}/{username}_{id}_2_{field}.log',
+				'data_out' => '{LOGS}rest-{date_Y}_{date_m}/{username}_{id}_3_{field}.log',
+			),
+		),
+	));
+?></code></pre>
+
+And you can override that on a per-controller basis like so:
+
+<pre><code><?php
+	class TwitterController extends AppController {
+		public $components = array(
+			'Rest.Rest' => array(
+				'log' => array(
+					'pretty' => true,
+				),
+			),
+		);
+	}
+?></code></pre>
+
+So:
+
+Rest default < Global Rest.settings config < Controller Rest.Rest component settings
+
 h3. JSONP support
 
 "Thanks to":https://github.com/kvz/cakephp-rest-plugin/pull/3#issuecomment-883201
