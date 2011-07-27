@@ -274,6 +274,14 @@ Class RestComponent extends Object {
 			// the view inside this plugin
 			$this->Controller->view = 'Rest.' . $this->View(false);
 		}
+
+		// Dryrun
+		if (($this->Controller->_restMeta = @$_POST['meta'])) {
+			if (@$this->Controller->_restMeta['dryrun']) {
+				$this->warning('Dryrun active, not really executing your command');
+				$this->abort();
+			}
+		}
 	}
 
 	/**
@@ -734,8 +742,8 @@ Class RestComponent extends Object {
 		}
 
 		$feedback = array();
-		foreach ($this->_feedback as $level=>$messages) {
-			foreach ($messages as $i=>$message) {
+		foreach ($this->_feedback as $level => $messages) {
+			foreach ($messages as $i => $message) {
 				$feedback[] = array(
 					'message' => $message,
 					'level' => $level,
@@ -805,11 +813,10 @@ Class RestComponent extends Object {
 		$hasErrors           = count(@$this->_feedback['error']);
 		$hasValidationErrors = count(@$this->_feedback['validate']);
 
+		$time   = time();
 		$status = ($hasErrors || $hasValidationErrors)
 			? 'error'
 			: 'ok';
-
-		$time     = time();
 
 		if (false === ($embed = @$this->_settings['actions'][$this->Controller->action]['embed'])) {
 			$response = $data;
