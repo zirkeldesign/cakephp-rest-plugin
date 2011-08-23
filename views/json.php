@@ -40,7 +40,9 @@ class JsonView extends View {
 
 	public function encode ($response, $pretty = true) {
 		if ($pretty) {
-			return $this->json_format($this->_encode($response));
+			$encoded = $this->_encode($response);
+			$pretty = $this->json_format($encoded);
+			return $pretty;
 		}
 		return $this->_encode($response);
 	}
@@ -58,9 +60,9 @@ class JsonView extends View {
 	 * @return string
 	 */
 	public function _encode ($response) {
-		if (function_exists('json_encode')) {
-			// PHP 5.2+
-			return json_encode($response);
+		if (function_exists('json_encode') && is_string($encoded = $response)) {
+			// PHP 5.2+, no utf8 problems
+			return $encoded;
 		}
 
 		if (is_null($response)) {
@@ -79,7 +81,7 @@ class JsonView extends View {
 
 			if (is_string($response)) {
 				static $jsonReplaces = array(array("\\", "/", "\n", "\t", "\r", "\b", "\f", '"'), array('\\\\', '\\/', '\\n', '\\t', '\\r', '\\b', '\\f', '\"'));
-				return '"' . str_replace($jsonReplaces[0], $jsonReplaces[1], $response) . '"';
+				return '"' . str_replace($jsonReplaces[0], $jsonReplaces[1], utf8_encode($response)) . '"';
 			} else {
 				return $response;
 			}
