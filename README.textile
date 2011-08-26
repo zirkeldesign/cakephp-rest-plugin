@@ -302,6 +302,7 @@ You can map callbacks to different places using the @callbacks@ setting like so:
 					'cbRestlogAfterSave' => 'restlogAfterSave',
 					'cbRestlogBeforeFind' => 'restlogBeforeFind',
 					'cbRestlogAfterFind' => array('Common', 'setCache'),
+					'cbRestlogFilter' => 'restlogFilter',
 					'cbRestRatelimitMax' => 'restRatelimitMax',
 				),
 			),
@@ -310,6 +311,28 @@ You can map callbacks to different places using the @callbacks@ setting like so:
 ?></code></pre>
 
 If the resolved callback is a string we assume it's a method in the calling controller.
+
+Here's an example of the logFilter callback
+
+<pre><code><?php
+	/**
+	 * Only log when special conditions have been met
+	 *
+	 * @param <type> $Rest
+	 * @param <type> $log
+	 *
+	 * @return <type>
+	 */
+	public function restlogFilter ($Rest, $log) {
+		if (Configure::read('App.short') === 'truecare') {
+			// You could also do last minute changes to the data being logged
+			return $log;
+		}
+		// Or return false to prevent logging alltogether
+		return false;
+	}
+?></code></pre>
+
 
 h3. Configuration
 

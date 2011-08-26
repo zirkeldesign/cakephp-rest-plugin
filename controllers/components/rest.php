@@ -35,6 +35,7 @@ Class RestComponent extends Object {
 			'cbRestlogAfterSave' => 'restlogAfterSave',
 			'cbRestlogBeforeFind' => 'restlogBeforeFind',
 			'cbRestlogAfterFind' => 'restlogAfterFind',
+			'cbRestlogFilter' => 'restlogFilter',
 			'cbRestRatelimitMax' => 'restRatelimitMax',
 		),
 		'extensions' => array('xml', 'json'),
@@ -476,9 +477,16 @@ Class RestComponent extends Object {
 
 			$this->RestLog()->create();
 			$this->cbRestlogBeforeSave();
-			$res = $this->RestLog()->save(array(
+
+			$log = array(
 				$this->RestLog()->alias => $this->_logData,
-			));
+			);
+			$log = $this->cbRestlogFilter($log);
+
+			if (is_array($log)) {
+				$res = $this->RestLog()->save($log);
+			}
+
 			$this->cbRestlogAfterSave();
 
 			return $res;
