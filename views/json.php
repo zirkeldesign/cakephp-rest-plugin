@@ -38,11 +38,100 @@ class JsonView extends View {
 		return true;
 	}
 
-	public function encode ($response, $pretty = true) {
+	public function encode ($response, $pretty = false) {
 		if ($pretty) {
-			return $this->json_format($this->_encode($response));
+			$encoded = $this->_encode($response);
+			$pretty = $this->json_format($encoded);
+			return $pretty;
 		}
 		return $this->_encode($response);
+	}
+
+
+	/**
+	 * (Recursively) utf8_encode each value in an array.
+	 * 
+	 * http://www.php.net/manual/es/function.utf8-encode.php#75422
+	 *
+	 * @param array $array
+	 * @return array utf8_encoded
+	 */
+	function utf8_encode_array($array) {
+		if (is_array($array)) {
+			$result_array = array();
+
+			foreach ($array as $key => $value) {
+
+				if ($this->array_type($array) == "map") {
+					// encode both key and value
+
+					if (is_array($value)) {
+						// recursion
+						$result_array[utf8_encode($key)] = $this->utf8_encode_array($value);
+					} else {
+						// no recursion
+						if (is_string($value)) {
+							$result_array[utf8_encode($key)] = utf8_encode($value);
+						} else {
+							// do not re-encode non-strings, just copy data
+							$result_array[utf8_encode($key)] = $value;
+						}
+					}
+				} else if ($this->array_type($array) == "vector") {
+					// encode value only
+
+					if (is_array($value)) {
+						// recursion
+						$result_array[$key] = $this->utf8_encode_array($value);
+					} else {
+						// no recursion
+
+						if (is_string($value)) {
+							$result_array[$key] = utf8_encode($value);
+						} else {
+							// do not re-encode non-strings, just copy data
+							$result_array[$key] = $value;
+						}
+					}
+				}
+			}
+
+			return $result_array;
+		}
+
+		return false;	 // argument is not an array, return false
+	}
+
+	/**
+	 * Determines array type ("vector" or "map"). Returns false if not an array at all.
+	 * (I hope a native function will be introduced in some future release of PHP, because
+	 * this check is inefficient and quite costly in worst case scenario.)
+	 *
+	 * http://www.php.net/manual/es/function.utf8-encode.php#75422
+	 *
+	 * @param array $array The array to analyze
+	 * @return string array type ("vector" or "map") or false if not an array
+	 */
+	function array_type($array) {
+		if (is_array($array)) {
+			$next = 0;
+
+			$return_value = "vector";  // we have a vector until proved otherwise
+
+			foreach ($array as $key => $value) {
+
+				if ($key != $next) {
+					$return_value = "map";  // we have a map
+					break;
+				}
+
+				$next++;
+			}
+
+			return $return_value;
+		}
+
+		return false;	// not array
 	}
 
 	/**
@@ -58,48 +147,50 @@ class JsonView extends View {
 	 * @return string
 	 */
 	public function _encode ($response) {
-		if (function_exists('json_encode')) {
-			// PHP 5.2+
-			return json_encode($response);
+		$utf8_encoded = $this->utf8_encode_array($response);
+
+		if (function_exists('json_encode') && is_string($json_encoded = json_encode($utf8_encoded))) {
+			// PHP 5.2+, no utf8 problems
+			return $json_encoded;
 		}
 
-		if (is_null($response)) {
+		if (is_null($utf8_encoded)) {
 			return 'null';
 		}
-		if ($response === false) {
+		if ($utf8_encoded === false) {
 			return 'false';
 		}
-		if ($response === true) {
+		if ($utf8_encoded === true) {
 			return 'true';
 		}
-		if (is_scalar($response)) {
-			if (is_float($response)) {
-				return floatval(str_replace(",", ".", strval($response)));
+		if (is_scalar($utf8_encoded)) {
+			if (is_float($utf8_encoded)) {
+				return floatval(str_replace(",", ".", strval($utf8_encoded)));
 			}
 
-			if (is_string($response)) {
+			if (is_string($utf8_encoded)) {
 				static $jsonReplaces = array(array("\\", "/", "\n", "\t", "\r", "\b", "\f", '"'), array('\\\\', '\\/', '\\n', '\\t', '\\r', '\\b', '\\f', '\"'));
-				return '"' . str_replace($jsonReplaces[0], $jsonReplaces[1], $response) . '"';
+				return '"' . str_replace($jsonReplaces[0], $jsonReplaces[1], utf8_encode($utf8_encoded)) . '"';
 			} else {
-				return $response;
+				return $utf8_encoded;
 			}
 		}
 		$isList = true;
-		for ($i = 0, reset($response); $i < count($response); $i++, next($response)) {
-			if (key($response) !== $i) {
+		for ($i = 0, reset($utf8_encoded); $i < count($utf8_encoded); $i++, next($utf8_encoded)) {
+			if (key($utf8_encoded) !== $i) {
 				$isList = false;
 				break;
 			}
 		}
 		$result = array();
 		if ($isList) {
-			foreach ($response as $v) {
-				$result[] = $this->encode($v);
+			foreach ($utf8_encoded as $v) {
+				$result[] = $this->_encode($v);
 			}
 			return '[' . join(',', $result) . ']';
 		} else {
-			foreach ($response as $k => $v) {
-				$result[] = $this->encode($k) . ':' . $this->encode($v);
+			foreach ($utf8_encoded as $k => $v) {
+				$result[] = $this->_encode($k) . ':' . $this->_encode($v);
 			}
 			return '{' . join(',', $result) . '}';
 		}
