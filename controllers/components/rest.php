@@ -710,31 +710,36 @@ Class RestComponent extends Object {
 	}
 	public function validate ($format, $arg1 = null, $arg2 = null) {
 		$args = func_get_args();
-		if (count($args) > 1) $format = vsprintf($format, $args);
+		if (count($args) > 0) $format = array_shift($args);
+		if (count($args) > 0) $format = vsprintf($format, $args);
 		$this->_feedback['error'][] = 'validation: ' . $format;
 		return false;
 	}
 	public function error ($format, $arg1 = null, $arg2 = null) {
 		$args = func_get_args();
-		if (count($args) > 1) $format = vsprintf($format, $args);
+		if (count($args) > 0) $format = array_shift($args);
+		if (count($args) > 0) $format = vsprintf($format, $args);
 		$this->_feedback[__FUNCTION__][] = $format;
 		return false;
 	}
 	public function debug ($format, $arg1 = null, $arg2 = null) {
 		$args = func_get_args();
-		if (count($args) > 1) $format = vsprintf($format, $args);
+		if (count($args) > 0) $format = array_shift($args);
+		if (count($args) > 0) $format = vsprintf($format, $args);
 		$this->_feedback[__FUNCTION__][] = $format;
 		return true;
 	}
 	public function info ($format, $arg1 = null, $arg2 = null) {
 		$args = func_get_args();
-		if (count($args) > 1) $format = vsprintf($format, $args);
+		if (count($args) > 0) $format = array_shift($args);
+		if (count($args) > 0) $format = vsprintf($format, $args);
 		$this->_feedback[__FUNCTION__][] = $format;
 		return true;
 	}
 	public function warning ($format, $arg1 = null, $arg2 = null) {
 		$args = func_get_args();
-		if (count($args) > 1) $format = vsprintf($format, $args);
+		if (count($args) > 0) $format = array_shift($args);
+		if (count($args) > 0) $format = vsprintf($format, $args);
 		$this->_feedback[__FUNCTION__][] = $format;
 		return false;
 	}
