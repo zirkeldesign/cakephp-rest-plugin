@@ -31,7 +31,7 @@ class XmlView extends View {
 	}
 
 	public function encode ($response) {
-		require_once dirname(dirname(__FILE__)) . '/libs/BluntXml.php';
+		require_once dirname(dirname(__FILE__)) . '/Lib/BluntXml.php';
 		$this->BluntXml = new BluntXml();
 		return $this->BluntXml->encode(
 			$response,

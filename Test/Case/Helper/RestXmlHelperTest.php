@@ -5,7 +5,7 @@ class Author {
 	var $name = 'Rodrigo Moyle';
 }
 
-class RestXmlHelperTestCase extends CakeTestCase {
+class RestXmlHelperTest extends CakeTestCase {
 	function setUp() {
 		$this->RestXml = new RestXmlHelper();
 	}
