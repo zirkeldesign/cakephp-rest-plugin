@@ -147,10 +147,6 @@ Class RestComponent extends Component {
 		}
 		$settings = Set::merge($_settings, $settings);
 
-		// Control Debug
-		$this->settings['debug'] = (int)$this->settings['debug'];
-		Configure::write('debug', $this->settings['debug']);
-
 		parent::__construct($collection, $settings);
 	}
 
@@ -160,6 +156,10 @@ Class RestComponent extends Component {
 		if (!$this->isActive()) {
 			return;
 		}
+
+		// Control Debug
+		$this->settings['debug'] = (int)$this->settings['debug'];
+		Configure::write('debug', $this->settings['debug']);
 
 		// Set credentials
 		$this->credentials(true);
