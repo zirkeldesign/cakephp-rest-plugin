@@ -23,7 +23,6 @@ class CsvView extends View {
 		}
 
 		header('Content-Type: text/csv');
-		$Controller->RequestHandler->setContent('csv', 'text/csv');
 		$Controller->RequestHandler->respondAs('csv');
 		return true;
 	}
@@ -45,7 +44,7 @@ class CsvView extends View {
 		}
 
 		// set everything from data part to one single one dimensional array
-		$data = $response['data'][$this->params['controller']];
+		$data = $response['data'][$this->request->params['controller']];
 		unset($response);
 		// put headers from array keys as first row
 		$fields = array_keys($data[0]);

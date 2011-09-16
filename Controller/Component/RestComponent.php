@@ -593,13 +593,7 @@ Class RestComponent extends Component {
 		if (!$cached || !($restControllers = Cache::read($ckey))) {
 			$restControllers = array();
 
-			if (method_exists('App', 'objects')) {
-				// As of cake 1.3, use App::objects instead of Configure::listObjects
-				// http://code.cakephp.org/wiki/1.3/migration-guide
-				$controllers = App::objects('controller', null, false);
-			} else {
-				$controllers = Configure::listObjects('controller', null, false);
-			}
+			$controllers = App::objects('controller', null, false);
 
 			// Unlist some controllers by default
 			foreach ($this->settings['skipControllers'] as $skipController) {

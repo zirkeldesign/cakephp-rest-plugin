@@ -32,8 +32,7 @@ class JsonView extends View {
 			return null;
 		}
 
-		header('Content-Type: text/javascript');
-		$Controller->RequestHandler->setContent('json', 'text/javascript');
+		header('Content-Type: application/json');
 		$Controller->RequestHandler->respondAs('json');
 		return true;
 	}

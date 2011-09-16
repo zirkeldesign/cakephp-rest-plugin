@@ -25,7 +25,6 @@ class XmlView extends View {
 		}
 
 		header('Content-Type: text/xml');
-		$Controller->RequestHandler->setContent('xml', 'text/xml');
 		$Controller->RequestHandler->respondAs('xml');
 		return true;
 	}
@@ -35,7 +34,7 @@ class XmlView extends View {
 		$this->BluntXml = new BluntXml();
 		return $this->BluntXml->encode(
 			$response,
-			Inflector::tableize($this->params['controller']) . '_response'
+			Inflector::tableize($this->request->params['controller']) . '_response'
 		);
 	}
 }
