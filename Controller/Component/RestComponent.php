@@ -604,7 +604,8 @@ Class RestComponent extends Component {
 
 			// Instantiate all remaining controllers and check components
 			foreach ($controllers as $controller) {
-				$className = $controller.'Controller';
+				$className = $controller;
+				$controller = substr($controller, 0, -10);
 
 				$debug = false;
 				if (!class_exists($className)) {
