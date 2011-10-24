@@ -55,50 +55,48 @@ class JsonView extends View {
 	 * @param array $array
 	 * @return array utf8_encoded
 	 */
-	function utf8_encode_array($array) {
-		if (is_array($array)) {
-			$result_array = array();
+	public function utf8_encode_array ($array) {
+		if (!is_array($array)) {
+			return false; // argument is not an array, return false
+		}
 
-			foreach ($array as $key => $value) {
+		$result_array = array();
 
-				if ($this->array_type($array) == "map") {
-					// encode both key and value
+		foreach ($array as $key => $value) {
+			if ($this->array_type($array) === 'map') {
+				// encode both key and value
 
-					if (is_array($value)) {
-						// recursion
-						$result_array[utf8_encode($key)] = $this->utf8_encode_array($value);
+				if (is_array($value)) {
+					// recursion
+					$result_array[utf8_encode($key)] = $this->utf8_encode_array($value);
+				} else {
+					// no recursion
+					if (is_string($value)) {
+						$result_array[utf8_encode($key)] = utf8_encode($value);
 					} else {
-						// no recursion
-						if (is_string($value)) {
-							$result_array[utf8_encode($key)] = utf8_encode($value);
-						} else {
-							// do not re-encode non-strings, just copy data
-							$result_array[utf8_encode($key)] = $value;
-						}
+						// do not re-encode non-strings, just copy data
+						$result_array[utf8_encode($key)] = $value;
 					}
-				} else if ($this->array_type($array) == "vector") {
-					// encode value only
+				}
+			} else if ($this->array_type($array) === 'vector') {
+				// encode value only
 
-					if (is_array($value)) {
-						// recursion
-						$result_array[$key] = $this->utf8_encode_array($value);
+				if (is_array($value)) {
+					// recursion
+					$result_array[$key] = $this->utf8_encode_array($value);
+				} else {
+					// no recursion
+					if (is_string($value)) {
+						$result_array[$key] = utf8_encode($value);
 					} else {
-						// no recursion
-
-						if (is_string($value)) {
-							$result_array[$key] = utf8_encode($value);
-						} else {
-							// do not re-encode non-strings, just copy data
-							$result_array[$key] = $value;
-						}
+						// do not re-encode non-strings, just copy data
+						$result_array[$key] = $value;
 					}
 				}
 			}
-
-			return $result_array;
 		}
 
-		return false;	 // argument is not an array, return false
+		return $result_array;
 	}
 
 	/**
@@ -111,26 +109,24 @@ class JsonView extends View {
 	 * @param array $array The array to analyze
 	 * @return string array type ("vector" or "map") or false if not an array
 	 */
-	function array_type($array) {
-		if (is_array($array)) {
-			$next = 0;
-
-			$return_value = "vector";  // we have a vector until proved otherwise
-
-			foreach ($array as $key => $value) {
-
-				if ($key != $next) {
-					$return_value = "map";  // we have a map
-					break;
-				}
-
-				$next++;
-			}
-
-			return $return_value;
+	public function array_type ($array) {
+		if (!is_array($array)) {
+			return false;
 		}
 
-		return false;	// not array
+		$next = 0;
+		$return_value = 'vector'; // we have a vector until proved otherwise
+
+		foreach ($array as $key => $value) {
+			if ($key != $next) {
+				$return_value = 'map'; // we have a map
+				break;
+			}
+
+			$next++;
+		}
+
+		return $return_value;
 	}
 
 	/**
@@ -204,7 +200,7 @@ class JsonView extends View {
 	 * @return string
 	 */
 	public function json_format ($json) {
-		$new_json     = "";
+		$new_json     = '';
 		$indent_level = 0;
 		$in_string    = false;
 
