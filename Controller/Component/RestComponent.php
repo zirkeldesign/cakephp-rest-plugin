@@ -551,9 +551,9 @@ Class RestComponent extends Component {
 				}
 
 				$this->log(array(
-					'username' => @$this->_credentials[$this->_settings['auth']['fields']['username']],
-					'apikey' => $this->_credentials[$this->_settings['auth']['fields']['apikey']],
-					'class' => $this->_credentials[$this->_settings['auth']['fields']['class']],
+					'username' => @$this->_credentials[$this->settings['auth']['fields']['username']],
+					'apikey' => $this->_credentials[$this->settings['auth']['fields']['apikey']],
+					'class' => $this->_credentials[$this->settings['auth']['fields']['class']],
 				));
 			}
 
