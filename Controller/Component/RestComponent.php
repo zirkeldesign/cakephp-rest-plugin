@@ -817,7 +817,22 @@ Class RestComponent extends Component {
 				// import validation errors
 				if (($modelErrors = @$this->Controller->{$modelClass}->validationErrors)) {
 					if (is_array($modelErrors)) {
-						$modelErrors = join('; ', $modelErrors);
+						$list = array();
+						foreach ($modelErrors as $key => $value) {
+							if (is_array($value) && isset($value[0])) {
+								$value = $value[0];
+							}
+							if (!is_numeric($key)) {
+								if (strpos($value, 'This field ') !== false) {
+									$value = str_replace('This field ', Inflector::humanize($key) . ' ', $value);
+								} else {
+									$value = $key . ': ' . $value;
+								}
+							}
+							$list[] = $value;
+						}
+
+						$modelErrors = join('; ', $list);
 					}
 					$this->validate($modelErrors);
 				}
@@ -838,7 +853,7 @@ Class RestComponent extends Component {
 			$response = $data;
 		} else {
 			$response = compact('data');
-		}		
+		}
 
 		if ($this->settings['meta']['enable']) {
 			$serverKeys = array_flip($this->settings['meta']['requestKeys']);
