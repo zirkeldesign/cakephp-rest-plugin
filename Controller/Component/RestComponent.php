@@ -279,7 +279,7 @@ Class RestComponent extends Component {
 		if ($this->settings['viewsFromPlugin']) {
 			// Setup the controller so it can use
 			// the view inside this plugin
-			$this->Controller->viewClass = 'Rest.' . $this->View(false);
+			$this->Controller->viewClass = 'Rest.' . $this->View(false) . 'Encode';
 		}
 
 		// Dryrun
@@ -921,18 +921,11 @@ Class RestComponent extends Component {
 
 		// Keep 1 instance of the active View in ->_View
 		if (!$this->_View) {
-			$className = $base . 'View';
+			list($plugin, $viewClass) = pluginSplit('Rest.' . $base . 'Encode', true);
+			$viewClass = $viewClass . 'View';
+			App::uses($viewClass, $plugin . 'View');
 
-			if (!class_exists($className)) {
-				$pluginRoot = dirname(dirname(dirname(__FILE__)));
-				$viewFile   = $pluginRoot . '/View/' . $className . '.php';
-				require_once $viewFile;
-			}
-
-			$this->_View = ClassRegistry::init('Rest.' . $className);
-			if (empty($this->_View->params)) {
-				$this->_View->params = $this->Controller->params;
-			}
+			$this->_View = new $viewClass($this->Controller);
 		}
 
 		return $this->_View;

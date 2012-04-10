@@ -8,7 +8,7 @@
  * @url http://blog.cakephp-brasil.org/2008/09/11/trabalhando-com-json-no-cakephp-12/
  * @licence MIT
  */
-class JsonView extends View {
+class JsonEncodeView extends View {
 	public $jsonTab = "  ";
 
 	public function render ($action = null, $layout = null, $file = null) {
