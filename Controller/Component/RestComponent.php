@@ -956,7 +956,6 @@ Class RestComponent extends Component {
 			return;
 		}
 		$this->_aborting = true;
-
 		if (is_string($params)) {
 			$code  = '403';
 			$error = $params;
@@ -968,6 +967,7 @@ Class RestComponent extends Component {
 				// Automatically fetch Auth Component Errors
 				$code  = '403';
 				$error = $this->Controller->Session->read('Message.auth.message');
+
 				$this->Controller->Session->delete('Message.auth');
 			}
 
@@ -982,12 +982,21 @@ Class RestComponent extends Component {
 				$this->debug('Redirect prevented by rest component. ');
 			}
 		}
+
+		// Fallback to generic messages
+		if (!$error && in_array($code, array(403, 404, 500))) {
+			$error = $this->codes[$code];
+		}
+
 		if ($error) {
 			$this->error($error);
 		}
+
 		$this->Controller->response->statusCode($code);
 
+
 		$this->headers();
+
 		$encoded = $this->View()->encode($this->response($data));
 
 		// Die.. ugly. but very safe. which is what we need
