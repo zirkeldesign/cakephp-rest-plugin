@@ -4,7 +4,7 @@
  *
  * @author Primeminister
  */
-class CsvView extends View {
+class CsvEncodeView extends View {
 	public function render ($action = null, $layout = null, $file = null) {
 		if (!array_key_exists('response', $this->viewVars)) {
 			trigger_error(
@@ -31,7 +31,7 @@ class CsvView extends View {
 	 * create csv string from response
 	 *
 	 * @param array $response with 'meta' and 'data' part
-	 * 
+	 *
 	 * @return string
 	 **/
 	public function encode ($response) {
@@ -39,7 +39,7 @@ class CsvView extends View {
 		if ($response['meta']['status'] === 'ok') {
 			unset($response['meta']);
 		} else {
-			return 'status: '.$response['meta']['status'] . "\n" . 
+			return 'status: '.$response['meta']['status'] . "\n" .
 				'message:'. $response['meta']['feedback']['message'] . "\n";
 		}
 
@@ -56,14 +56,14 @@ class CsvView extends View {
 		}
 		return $csv;
 	}
-	
+
 	/**
-	 * Creating a file resource to php://temp so we don;t save a real file and 
+	 * Creating a file resource to php://temp so we don;t save a real file and
 	 * return the string of that csv line
 	 *
 	 * @param array  $row
 	 * @param string $delimiter
-	 * @param string $enclosure 
+	 * @param string $enclosure
 	 * @param string $eol
 	 *
 	 * @return string

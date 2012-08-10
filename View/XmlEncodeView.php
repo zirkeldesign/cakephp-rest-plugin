@@ -5,7 +5,7 @@
  * @author Jonathan Dalrymple
  * @author kvz
  */
-class XmlView extends View {
+class XmlEncodeView extends View {
 	public $BluntXml;
 	public function render ($action = null, $layout = null, $file = null) {
 		if (!array_key_exists('response', $this->viewVars)) {

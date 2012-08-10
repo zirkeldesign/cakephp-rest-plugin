@@ -49,7 +49,7 @@ class JsonEncodeView extends View {
 
 	/**
 	 * (Recursively) utf8_encode each value in an array.
-	 * 
+	 *
 	 * http://www.php.net/manual/es/function.utf8-encode.php#75422
 	 *
 	 * @param array $array
