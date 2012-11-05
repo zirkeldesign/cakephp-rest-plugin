@@ -144,7 +144,6 @@ class ServersController extends AppController {
         return !empty($this->Rest) && is_object($this->Rest) && $this->Rest->isActive();
     }
 }
-}
 ?>
 ```
 
