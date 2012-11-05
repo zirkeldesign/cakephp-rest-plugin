@@ -478,7 +478,7 @@ Good explanations of typical JSONP usage here:
     denial of server & brute force attempts~~
 - ~~Maybe some Refactoring. This is pretty much the first attempt at a
     working plugin~~
-- ~~ XML (now only JSON is supported)~~
+- ~~XML (now only JSON is supported)~~
 
 ## Resources
 
