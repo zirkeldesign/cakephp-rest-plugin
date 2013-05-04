@@ -116,13 +116,7 @@ class BluntXml {
 	 * @return string
 	 */
 	protected function _xmlBeautify ($xml) {
-		$xml = str_replace("&szlig;", chr(195).chr(159),$xml); // ß
-		$xml = str_replace("&auml;", chr(195).chr(164),$xml); // ä
-		$xml = str_replace("&Auml;", chr(195).chr(132),$xml); // Ä
-		$xml = str_replace("&ouml;", chr(195).chr(182),$xml); // ö
-		$xml = str_replace("&Ouml;", chr(195).chr(150),$xml); // Ö
-		$xml = str_replace("&uuml;", chr(195).chr(188),$xml); // ü
-		$xml = str_replace("&Uuml;", chr(195).chr(156),$xml); // Ü
+		$xml = mb_convert_encoding($xml, 'UTF-8', 'HTML-ENTITIES');
 		
 		if (!$this->beautify) {
 			return $xml;
