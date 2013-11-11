@@ -47,7 +47,7 @@ class RestLog extends RestAppModel {
 	 * @param <type> $created
 	 * @return <type>
 	 */
-	public function afterSave ($created) {
+	public function afterSave ($created, $options = array()) {
 		if (!$created) {
 			return parent::beforeSave($created);
 		}
@@ -80,6 +80,6 @@ class RestLog extends RestAppModel {
 			file_put_contents($logfilepath, $val, FILE_APPEND);
 		}
 
-		return parent::beforeSave($created);
+		return parent::beforeSave($created, $options);
 	}
 }

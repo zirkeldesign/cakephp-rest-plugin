@@ -474,7 +474,7 @@ Class RestComponent extends Component {
 	 *
 	 * @return boolean
 	 */
-	public function log ($key, $val = null) {
+	public function log ($key, $val = null, $scope = null) {
 		// Write log
 		if ($key === true && func_num_args() === 1) {
 			if (!@$this->settings['log']['model']) {
