@@ -377,40 +377,48 @@ public function restlogFilter ($Rest, $log) {
 }
 ?>
 ```
+
 ### Logs
+
 We can use this in simple way
-```
-public $components = array( 'Rest.Rest' => array(
-            'catchredir' => true,
-            'log' => array(
-                'model' => 'Rest.RestLog',
-                'pretty' => true,
+
+```php
+public $components = array(
+    'Rest.Rest' => array(
+        'catchredir' => true,
+        'log' => array(
+            'model' => 'Rest.RestLog',
+            'pretty' => true,
+        ),
+        'actions' => array(
+            'index' => array(
+                'extract' => array( 'orders' ),
             ),
-            'actions' => array(
-                'index' => array(
-                    'extract' => array( 'orders' ),
-                ),
-                'view' => array(
-                    'extract' => array( 'orderDetail' ),
-                ),
-                'add' => array(
-                    'extract' => array( 'message' ),
-                ),
+            'view' => array(
+                'extract' => array( 'orderDetail' ),
+            ),
+            'add' => array(
+                'extract' => array( 'message' ),
             ),
         ),
-    );
+    ),
+);
 ```
+
 And in AppController
 
-```
+```php
 public function restlogFilter ($Rest, $log) {
-        return $log;
-    }
+    return $log;
+}
 ```
-And in Plugin's Modal just define extra db config
 
-```
-public $useDbConfig = 'mongo';
+Optionally in (your own, maybe extended) Model you could define extra db config
+
+```php
+App::import('Rest.RestLog', 'model');
+class ApiLog extends RestLog {
+    public $useDbConfig = 'mongo';
 ```
 
 ### Configuration
