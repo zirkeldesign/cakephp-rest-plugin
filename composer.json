@@ -1,0 +1,7 @@
+
+{
+    "name": "cakephp/Rest",
+    "version": "dev-master",
+    "description": "Server Rest for CakePhp",
+    "type": "cakephp-plugin",
+}
