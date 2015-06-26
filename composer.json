@@ -1,7 +1,10 @@
 
 {
-    "name": "cakephp/Rest",
-    "version": "dev-master",
+    "name": "seb182/cakephp-rest-plugin",
     "description": "Server Rest for CakePhp",
+    "keywords": ["CakePHP", "REST", "Server"],
     "type": "cakephp-plugin",
+    "extra": {
+		"installer-name": "Rest"
+	}
 }
