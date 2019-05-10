@@ -1,4 +1,4 @@
-#CakePHP Rest Plugin
+# CakePHP Rest Plugin
 
 Painless REST server Plugin for CakePHP
 
@@ -31,12 +31,6 @@ For best results, 2 changes to your application have to be made:
 
 - A check if REST is active inside your error handler & `redirect()`
 - Resource mapping in your router (see docs below)
-
-## Warning - Cake 1.3 Users
-
-Please use the [cake-1.3
-branch](https://github.com/kvz/cakephp-rest-plugin/tree/cake-1.3).
-As of November 5th 2012, \`master\` now points to Cake 2.0+ code.
 
 ## Warning - Backwards compatibility breakage
 
