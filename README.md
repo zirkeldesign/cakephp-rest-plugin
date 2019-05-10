@@ -36,18 +36,17 @@ For best results, 2 changes to your application have to be made:
 
 Action variables are now all contained in 1 big ‘actions’ setting, instead
 of directly under settings, as to avoid setting vs action collision.
-Behavior changed since [pull 15](https://github.com/kvz/cakephp-rest-
-plugin/pull/15)
+Behavior changed since [pull 15](https://github.com/kvz/cakephp-rest-plugin/pull/15)
 If you don’t change your controllers to reflect that, your API will break.
 
 [This](https://github.com/kvz/cakephp-rest-plugin/commit/e70728fe98ac442d546e08836a5b388aff0ef1ec)
-is your last *good* version. These settings have moved likewise:
+is your last _good_ version. These settings have moved likewise:
 
- - `->{$action}['extract']` `->actions[$action]['extract']`
- - `->{$action}['id']` `->actions[$action]['id']`
- - `->{$action}['scopeVar']` `->actions[$action]['scopeVar']`
- - `->{$action}['method']` `->actions[$action]['method']`
- - Ratelimiter is now toggled with `->ratelimit['enable']` instead of `->ratelimiter`
+- `->{$action}['extract']` `->actions[$action]['extract']`
+- `->{$action}['id']` `->actions[$action]['id']`
+- `->{$action}['scopeVar']` `->actions[$action]['scopeVar']`
+- `->{$action}['method']` `->actions[$action]['method']`
+- Ratelimiter is now toggled with `->ratelimit['enable']` instead of `->ratelimiter`
 
 ## Requirements
 
@@ -57,7 +56,7 @@ is your last *good* version. These settings have moved likewise:
 ## Installation
 
 - Download this:
-[http://github.com/kvz/cakephp-rest-plugin/zipball/master](http://github.com/kvz/cakephp-rest-plugin/zipball/master)
+  [http://github.com/kvz/cakephp-rest-plugin/zipball/master](http://github.com/kvz/cakephp-rest-plugin/zipball/master)
 - Unzip that download.
 - Copy the resulting folder to app/plugins
 - Rename the folder you just copied to `rest`
@@ -96,11 +95,10 @@ Do you run Apache? Make your `app/webroot/.htaccess` look like so:
 </IfModule>
 ```
 
-In my experience Nginx & FastCGI already make the HTTP\_AUTHORIZATION
+In my experience Nginx & FastCGI already make the HTTP_AUTHORIZATION
 available which is used to parse credentials for authentication.
 
-Usage
------
+## Usage
 
 ### Controller
 
@@ -222,12 +220,10 @@ to show any information regarding the validity of the request & response.
 
 ### Authorization
 
-Check the HTTP header as shown [here](http://docs.amazonwebservices.com/Amazon
-S3/latest/dev/index.html?RESTAuthentication.html). You can control the
+Check the HTTP header as shown [here](http://docs.amazonwebservices.com/AmazonS3/latest/dev/index.html?RESTAuthentication.html). You can control the
 `authKeyword` setting to control what keyword belongs to your REST API. By
 default it uses: TRUEREST. Have your users supply a header like:
-`Authorization: TRUEREST
-username=john&password=xxx&apikey=247b5a2f72df375279573f2746686daa`
+`Authorization: TRUEREST username=john&password=xxx&apikey=247b5a2f72df375279573f2746686daa`
 
 Now, inside your controller these variables will be available by calling
 `$this->Rest->credentials()`. This plugin only handles the parsing of the
@@ -475,18 +471,23 @@ For example:
 
 ```html
 <script type="text/javascript">
-    var showPrice = function (data) {
-         alert('Product: ' + data.product.name + ', Price: ' + data.product.price);
-    }
+  var showPrice = function(data) {
+    alert("Product: " + data.product.name + ", Price: " + data.product.price);
+  };
 </script>
-<script type="text/javascript" src="http://server2.example.com/getjson?callback=showPrice"></script>
+<script
+  type="text/javascript"
+  src="http://server2.example.com/getjson?callback=showPrice"
+></script>
 ```
 
 With jQuery, something similar could have been achieved like so:
 
 ```javascript
-jQuery.getJSON('http://www.yourdomain.com/products/product.json', function (data) {
-    alert('Product: ' + data.product.name + ', Price: ' + data.product.price);
+jQuery.getJSON("http://www.yourdomain.com/products/product.json", function(
+  data
+) {
+  alert("Product: " + data.product.name + ", Price: " + data.product.price);
 });
 ```
 
@@ -494,9 +495,12 @@ But for cross-domain requests, use JSONP. jQuery will substitute `?`
 with the callback.
 
 ```javascript
-jQuery.getJSON('http://www.yourdomain.com/products/product.json?callback=?', function (data) {
-    alert('Product: ' + data.product.name + ', Price: ' + data.product.price);
-});
+jQuery.getJSON(
+  "http://www.yourdomain.com/products/product.json?callback=?",
+  function(data) {
+    alert("Product: " + data.product.name + ", Price: " + data.product.price);
+  }
+);
 ```
 
 Good explanations of typical JSONP usage here:
@@ -510,10 +514,10 @@ Good explanations of typical JSONP usage here:
 - ~~Cake 2.0 support~~
 - ~~Cake 1.3 support~~
 - ~~The RestLog model that tracks usage should focus more on IP for
-    rate-limiting than account info. This is mostly to defend against
-    denial of server & brute force attempts~~
+  rate-limiting than account info. This is mostly to defend against
+  denial of server & brute force attempts~~
 - ~~Maybe some Refactoring. This is pretty much the first attempt at a
-    working plugin~~
+  working plugin~~
 - ~~XML (now only JSON is supported)~~
 
 ## Resources
@@ -556,13 +560,10 @@ All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
-met:
-\* Redistributions of source code must retain the above copyright
-notice, this list of conditions and the following disclaimer.
-\* Redistributions in binary form must reproduce the above copyright
+met: \* Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer. \* Redistributions in binary form must reproduce the above copyright
 notice, this list of conditions and the following disclaimer in the
-documentation and/or other materials provided with the distribution.
-\* Neither the name of the this plugin nor the names of its
+documentation and/or other materials provided with the distribution. \* Neither the name of the this plugin nor the names of its
 contributors may be used to endorse or promote products derived from
 this software without specific prior written permission.
 
