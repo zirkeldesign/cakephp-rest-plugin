@@ -1,0 +1,12 @@
+{
+    "name": "Rest",
+    "description": "Painless REST server Plugin for CakePHP",
+
+    "author": "Daniel Sturm",
+    "authorEmail": "sturm@zirkel.design",
+    "authorUrl": "https://zirkel.design",
+
+    "dependencies": {
+        "plugins": ["extensions"]
+    }
+}

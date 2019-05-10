@@ -1,19 +1,18 @@
 <?php
 /* rest schema generated on: 2011-06-22 02:36:20 : 1308710180*/
-class restSchema extends CakeSchema
+class RestSchema extends CakeSchema
 {
-    var $name = 'rest';
 
-    function before($event = [])
+    public function before($event = [])
     {
         return true;
     }
 
-    function after($event = [])
+    public function after($event = [])
     {
     }
 
-    var $rest_logs = [
+    public $rest_logs = [
         'id' => ['type' => 'integer', 'null' => false, 'default' => null, 'length' => 20, 'key' => 'primary'],
         'class' => ['type' => 'string', 'null' => false, 'default' => null, 'length' => 40, 'collate' => 'utf8_unicode_ci', 'charset' => 'utf8'],
         'username' => ['type' => 'string', 'null' => false, 'default' => null, 'length' => 40, 'collate' => 'utf8_unicode_ci', 'charset' => 'utf8'],
