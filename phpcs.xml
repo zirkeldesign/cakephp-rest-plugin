@@ -7,7 +7,7 @@
   <file>resources/index.php</file>
   <file>app</file>
   <file>resources/views</file> -->
-  <exclude-pattern type="relative">^/Config/*</exclude-pattern>
+  <exclude-pattern type="relative">^/Lib/*</exclude-pattern>
   <exclude-pattern type="relative">^/Vendor/*</exclude-pattern>
 
   <!-- Show colors in console -->
