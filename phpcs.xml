@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<ruleset name="ZD CakePHP">
+  <description>ZD CakePHP Coding Standards</description>
+
+  <!-- Scan these files -->
+  <!-- <file>resources/functions.php</file>
+  <file>resources/index.php</file>
+  <file>app</file>
+  <file>resources/views</file> -->
+  <exclude-pattern type="relative">^/Config/*</exclude-pattern>
+  <exclude-pattern type="relative">^/Vendor/*</exclude-pattern>
+
+  <!-- Show colors in console -->
+  <arg value="-colors"/>
+
+  <!-- Show sniff codes in all reports -->
+  <arg value="s"/>
+
+  <!-- Use PSR-2 as a base -->
+  <rule ref="CakePHP" />
+</ruleset>
