@@ -1,4 +1,5 @@
 <?php
-class RestAppModel extends AppModel {
+class RestAppModel extends AppModel
+{
 
 }
