@@ -1,11 +1,16 @@
 <?php
+/**
+ * RestLog
+ */
 class RestLog extends RestAppModel
 {
-
     public $restLogSettings = [];
+
     public $Encoder = null;
-    public $logpaths = [];
-    public $filedata = [];
+
+    public $logPaths = [];
+
+    public $fileData = [];
 
     /**
      * Some log fields might be destined for disk instead of db
@@ -15,26 +20,41 @@ class RestLog extends RestAppModel
      */
     public function beforeSave($options = [])
     {
-        $fields = (array)@$this->restLogSettings['fields'];
-        $this->logpaths = [];
-        $this->filedata = [];
+        // Set defaults to settings.
+        $this->restLogSettings += [
+            'fields' => [],
+            'pretty' => true,
+        ];
+
+        $fields = (array)$this->restLogSettings['fields'];
+
+        $this->logPaths = [];
+        $this->fileData = [];
+
         foreach ($fields as $field => $log) {
-            if (false !== strpos($log, '.') || false !== strpos($log, '/') || false !== strpos($log, '{')) {
-                $this->logpaths[$field] = $log;
+            if (false !== strpos($log, '.')
+                || false !== strpos($log, '/')
+                || false !== strpos($log, '{')
+            ) {
+                $this->logPaths[$field] = $log;
             }
         }
 
         foreach ($this->data[__CLASS__] as $field => $val) {
             if (!is_scalar($this->data[__CLASS__][$field])) {
-                $this->data[__CLASS__][$field] = $this->Encoder->encode($this->data[__CLASS__][$field], !!@$this->restLogSettings['pretty']);
+                $this->data[__CLASS__][$field] = $this->Encoder->encode(
+                    $this->data[__CLASS__][$field],
+                    (bool)$this->restLogSettings['pretty']
+                );
             }
+
             if (is_null($this->data[__CLASS__][$field])) {
                 $this->data[__CLASS__][$field] = '';
             }
 
-            if (isset($this->logpaths[$field])) {
-                $this->filedata[$field] = $this->data[__CLASS__][$field];
-                $this->data[__CLASS__][$field] = '# on disk at: ' . $this->logpaths[$field];
+            if (isset($this->logPaths[$field])) {
+                $this->fileData[$field] = $this->data[__CLASS__][$field];
+                $this->data[__CLASS__][$field] = '# on disk at: ' . $this->logPaths[$field];
             }
         }
 
@@ -54,32 +74,40 @@ class RestLog extends RestAppModel
             return parent::beforeSave($created);
         }
 
-        $vars = @$this->restLogSettings['vars'] ? @$this->restLogSettings['vars'] : [];
+        // Set defaults to settings.
+        $this->restLogSettings += [
+            'vars' => [],
+            'controller' => null,
+        ];
 
-        foreach ($this->filedata as $field => $val) {
+        $vars = (array)$this->restLogSettings['vars'];
+
+        foreach ($this->fileData as $field => $val) {
             $vars['{' . $field . '}'] = $val;
         }
-        foreach ($this->data[__CLASS__] as $field => $val) {
+
+        foreach ($this->data[$this->alias] as $field => $val) {
             $vars['{' . $field . '}'] = $val;
         }
+
         foreach (['Y', 'm', 'd', 'H', 'i', 's', 'U'] as $dp) {
             $vars['{date_' . $dp . '}'] = date($dp);
         }
 
-        $vars['{LOGS}'] = LOGS;
-        $vars['{id}'] = $this->id;
-        $vars['{controller}'] = Inflector::tableize(@$this->restLogSettings['controller']);
+        $vars['{LOGS}']       = LOGS;
+        $vars['{id}']         = $this->id;
+        $vars['{controller}'] = Inflector::tableize($this->restLogSettings['controller']);
 
-        foreach ($this->filedata as $field => $val) {
+        foreach ($this->fileData as $field => $val) {
             $vars['{field}'] = $field;
-            $logfilepath     = $this->logpaths[$field];
+            $logFilePath    = $this->logPaths[$field];
 
-            $logfilepath = str_replace(array_keys($vars), $vars, $logfilepath);
-            $dir = dirname($logfilepath);
+            $logFilePath = str_replace(array_keys($vars), $vars, $logFilePath);
+            $dir = dirname($logFilePath);
             if (!is_dir($dir)) {
                 mkdir($dir, 0755, true);
             }
-            file_put_contents($logfilepath, $val, FILE_APPEND);
+            file_put_contents($logFilePath, $val, FILE_APPEND);
         }
 
         return parent::beforeSave($created, $options);

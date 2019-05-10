@@ -1,6 +1,12 @@
 <?php
+/**
+ * RestComponent
+ */
 class RestComponent extends Component
 {
+    /**
+     * Response codes.
+     */
     public $codes = [
         200 => 'OK',
         400 => 'Bad Request',
@@ -12,6 +18,7 @@ class RestComponent extends Component
         406 => 'Not Acceptable',
         407 => 'Proxy Authentication Required',
         408 => 'Request Time-out',
+        409 => 'Conflict',
         500 => 'Internal Server Error',
         501 => 'Not Implemented',
         502 => 'Bad Gateway',
@@ -39,13 +46,18 @@ class RestComponent extends Component
             'cbRestlogFilter' => 'restlogFilter',
             'cbRestRatelimitMax' => 'restRatelimitMax',
         ],
-        'extensions' => ['xml', 'json'],
+        'extensions' => [
+            'xml',
+            'json'
+        ],
         'viewsFromPlugin' => true,
-        'skipControllers' => [ // Don't show these as actual rest controllers even though they have the component attached
+        'skipControllers' => [
+            // Don't show these as actual rest controllers even though they have the component attached
             'App',
             'Defaults',
         ],
         'auth' => [
+            'type' => 'default',
             'requireSecure' => false,
             'keyword' => 'TRUEREST',
             'fields' => [
@@ -121,7 +133,7 @@ class RestComponent extends Component
                 'Customer' => ['-1 hour', 100],
             ],
             'identfield' => 'apikey',
-            'ip_limit' => ['-1 hour', 60],  // For those not logged in
+            'ip_limit' => ['-1 hour', 60], // For those not logged in
         ],
         'version' => '0.3',
         'actions' => [
@@ -132,6 +144,7 @@ class RestComponent extends Component
         'debug' => 0,
         'onlyActiveWithAuth' => false,
         'catchredir' => false,
+        'jsonHeader' => 'text/javascript' // Use 'application/json' if you don't need JSONP
     ];
 
     /**
@@ -188,8 +201,10 @@ class RestComponent extends Component
 
         // SSL
         if (!empty($this->settings['auth']['requireSecure'])) {
-            if (!isset($this->Controller->Security)
-                || !is_object($this->Controller->Security)) {
+            if (
+                !isset($this->Controller->Security)
+                || !is_object($this->Controller->Security)
+            ) {
                 return $this->abort('You need to enable the Security component first');
             }
             $this->Controller->Security->requireSecure($this->settings['auth']['requireSecure']);
@@ -211,7 +226,7 @@ class RestComponent extends Component
     public function __call($name, $arguments)
     {
         if (!isset($this->settings['callbacks'][$name])) {
-            return $this->abort('Function does not exist: '. $name);
+            return $this->abort('Function does not exist: ' . $name);
         }
 
         $cb = $this->settings['callbacks'][$name];
@@ -557,23 +572,39 @@ class RestComponent extends Component
         // Set credentials
         if ($set === true) {
             if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
-                $parts = explode(' ', $_SERVER['HTTP_AUTHORIZATION']);
-                $match = array_shift($parts);
-                if ($match !== $this->settings['auth']['keyword']) {
-                    return false;
+                switch ($this->_settings['auth']['type']) {
+                    case 'basic':
+                        $credentialsBase64 = substr($_SERVER['HTTP_AUTHORIZATION'], strlen("Basic "));
+                        if (!$credentialsBase64) {
+                            return false;
+                        }
+                        $credentials = base64_decode($credentialsBase64);
+                        // Limit explode to 2 to avoid problems with pw containing ':'
+                        // Username can't contain ':'.
+                        $parts = explode(':', $credentials, 2);
+                        $this->_credentials['username'] = $parts[0];
+                        $this->_credentials['password'] = $parts[1];
+                        break;
+                    case 'default':
+                        $parts = explode(' ', $_SERVER['HTTP_AUTHORIZATION']);
+                        $match = array_shift($parts);
+                        if ($match !== $this->_settings['auth']['keyword']) {
+                            return false;
+                        }
+                        $str = join(' ', $parts);
+                        parse_str($str, $this->_credentials);
+                        if (!isset($this->_credentials[$this->_settings['auth']['fields']['class']])) {
+                            $this->_credentials[$this->_settings['auth']['fields']['class']] = $this->_settings['ratelimit']['default'];
+                        }
+                        $this->log(
+                            [
+                                'username' => @$this->_credentials[$this->_settings['auth']['fields']['username']],
+                                'apikey' => $this->_credentials[$this->_settings['auth']['fields']['apikey']],
+                                'class' => $this->_credentials[$this->_settings['auth']['fields']['class']],
+                            ]
+                        );
+                        break;
                 }
-                $str = join(' ', $parts);
-                parse_str($str, $this->_credentials);
-
-                if (!isset($this->_credentials[$this->settings['auth']['fields']['class']])) {
-                    $this->_credentials[$this->settings['auth']['fields']['class']] = $this->settings['ratelimit']['default'];
-                }
-
-                $this->log([
-                    'username' => @$this->_credentials[$this->settings['auth']['fields']['username']],
-                    'apikey' => $this->_credentials[$this->settings['auth']['fields']['apikey']],
-                    'class' => $this->_credentials[$this->settings['auth']['fields']['class']],
-                ]);
             }
 
             return $this->_credentials;
@@ -641,8 +672,8 @@ class RestComponent extends Component
                         if (!in_array($action, $Controller->methods)) {
                             $this->debug(sprintf(
                                 'Rest component is expecting a "%s" action but got "%s" instead. ' .
-                                'You probably upgraded your component without reading the backward compatiblity ' .
-                                'warnings in the readme file, or just did not implement the "%s" action in the "%s" controller yet',
+                                    'You probably upgraded your component without reading the backward compatiblity ' .
+                                    'warnings in the readme file, or just did not implement the "%s" action in the "%s" controller yet',
                                 $Controller->name,
                                 $action,
                                 $action,
@@ -666,7 +697,7 @@ class RestComponent extends Component
                                 } else {
                                     return $this->abort(sprintf(
                                         'Rest maintainer needs to set "%s" for %s using ' .
-                                        '%s->components->Rest.Rest->actions[\'%s\'][\'%s\'] = %s',
+                                            '%s->components->Rest.Rest->actions[\'%s\'][\'%s\'] = %s',
                                         $exposeVar,
                                         $action,
                                         $className,
@@ -710,13 +741,20 @@ class RestComponent extends Component
     public function isActive()
     {
         if ($this->isActive === null) {
-            if (!isset($this->Controller) || !is_object($this->Controller)) {
+            if (
+                !isset($this->Controller)
+                || !is_object($this->Controller)
+                || !isset($this->Controller->params['url']['ext'])
+            ) {
                 return false;
             }
 
             if ($this->settings['onlyActiveWithAuth'] === true) {
                 $keyword = $this->settings['auth']['keyword'];
-                if ($keyword && strpos(@$_SERVER['HTTP_AUTHORIZATION'], $keyword) === 0) {
+                if (
+                    $keyword
+                    && 0 === strpos(@$_SERVER['HTTP_AUTHORIZATION'], $keyword)
+                ) {
                     return $this->isActive = true;
                 } else {
                     return $this->isActive = false;
@@ -986,15 +1024,26 @@ class RestComponent extends Component
         return $this->_View;
     }
 
+    /**
+     * beforeRedirect
+     *
+     * @param Controller $Controller
+     * @param string|array $url
+     * @param mixed $status
+     * @param bool $exit
+     *
+     * @return bool|null
+     */
     public function beforeRedirect(Controller $Controller, $url, $status = null, $exit = true)
     {
-        if (@$this->settings['catchredir'] === false) {
-            return;
+        if (false === $this->settings['catchredir']) {
+            return null;
         }
 
         if (!$this->isActive()) {
-            return;
+            return null;
         }
+
         $redirect = true;
         $this->abort(compact('url', 'status', 'exit', 'redirect'));
 
@@ -1005,25 +1054,30 @@ class RestComponent extends Component
      * Could be called by e.g. ->redirect to dump
      * an error & stop further execution.
      *
-     * @param <type> $params
-     * @param <type> $data
+     * @param array $params
+     * @param array $data
      */
     public function abort($params = [], $data = [])
     {
         if ($this->_aborting) {
             return;
         }
+
         $this->_aborting = true;
+
         if (is_string($params)) {
-            $code  = '403';
+            $code = '403';
             $error = $params;
         } else {
-            $code  = '200';
+            $code = '200';
             $error = '';
 
-            if (is_object($this->Controller->Session) && @$this->Controller->Session->read('Message.auth')) {
+            if (
+                is_object($this->Controller->Session)
+                && $this->Controller->Session->read('Message.auth')
+            ) {
                 // Automatically fetch Auth Component Errors
-                $code  = '403';
+                $code = '403';
                 $error = $this->Controller->Session->read('Message.auth.message');
 
                 $this->Controller->Session->delete('Message.auth');
@@ -1032,17 +1086,24 @@ class RestComponent extends Component
             if (!empty($params['status'])) {
                 $code = $params['status'];
             }
+
             if (!empty($params['error'])) {
                 $error = $params['error'];
             }
 
-            if (empty($error) && !empty($params['redirect'])) {
-                $this->debug('Redirect prevented by rest component. ');
+            if (
+                empty($error)
+                && !empty($params['redirect'])
+            ) {
+                $this->debug('Redirect prevented by rest component.');
             }
         }
 
         // Fallback to generic messages
-        if (!$error && in_array($code, [403, 404, 500])) {
+        if (
+            !$error
+            && in_array($code, [403, 404, 500])
+        ) {
             $error = $this->codes[$code];
         }
 
@@ -1058,11 +1119,26 @@ class RestComponent extends Component
 
         // Die.. ugly. but very safe. which is what we need
         // or all Auth & Acl work could be circumvented
-        $this->log([
-            'httpcode' => $code,
-            'error' => $error,
-        ]);
+        $this->log(
+            [
+                'httpcode' => $code,
+                'error' => $error,
+            ]
+        );
         $this->shutdown($this->Controller);
         die($encoded);
+    }
+
+    /**
+     * Insert and/or replace settings dynamically.
+     *
+     * @param string $path. Xpath specifying setting to insert
+     * @param array $newSettings. New settings to insert
+     *
+     * @return void
+     */
+    public function insertSettings($path, $newSettings)
+    {
+        $this->_settings = Set::insert($this->_settings, $path, $newSettings);
     }
 }

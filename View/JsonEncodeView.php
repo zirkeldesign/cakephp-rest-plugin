@@ -2,12 +2,13 @@
 /**
  * View Class for JSON
  *
+ * @url http://blog.cakephp-brasil.org/2008/09/11/trabalhando-com-json-no-cakephp-12/
  * @author Juan Basso
  * @author Jonathan Dalrymple
  * @author kvz
- * @url http://blog.cakephp-brasil.org/2008/09/11/trabalhando-com-json-no-cakephp-12/
- * @licence MIT
+ * @license MIT
  */
+
 class JsonEncodeView extends View
 {
     public $jsonTab = "  ";
@@ -36,7 +37,9 @@ class JsonEncodeView extends View
             return null;
         }
 
-        header('Content-Type: application/json');
+        $jsonHeader = $settings['jsonHeader'];
+        header("Content-Type: $jsonHeader");
+        $Controller->RequestHandler->setContent('json', $jsonHeader);
         $Controller->RequestHandler->respondAs('json');
 
         return true;
@@ -68,6 +71,19 @@ class JsonEncodeView extends View
             return false; // argument is not an array, return false
         }
 
+        if (function_exists('array_walk_recursive')) {
+            array_walk_recursive(
+                $array,
+                function (&$item, $key) {
+                    if (!mb_detect_encoding($item, 'utf-8', true)) {
+                        $item = utf8_encode($item);
+                    }
+                }
+            );
+
+            return $array;
+        }
+
         $result_array = [];
 
         foreach ($array as $key => $value) {
@@ -86,7 +102,7 @@ class JsonEncodeView extends View
                         $result_array[utf8_encode($key)] = $value;
                     }
                 }
-            } else if ($this->array_type($array) === 'vector') {
+            } elseif ($this->array_type($array) === 'vector') {
                 // encode value only
 
                 if (is_array($value)) {
@@ -127,7 +143,7 @@ class JsonEncodeView extends View
         $return_value = 'vector'; // we have a vector until proved otherwise
 
         foreach ($array as $key => $value) {
-            if ($key != $next) {
+            if ($key !== $next) {
                 $return_value = 'map'; // we have a map
                 break;
             }
@@ -154,7 +170,9 @@ class JsonEncodeView extends View
     {
         $utf8_encoded = $this->utf8_encode_array($response);
 
-        if (function_exists('json_encode') && is_string($json_encoded = json_encode($utf8_encoded))) {
+        if (function_exists('json_encode')
+            && is_string($json_encoded = json_encode($utf8_encoded))
+        ) {
             // PHP 5.2+, no utf8 problems
             return $json_encoded;
         }
@@ -181,6 +199,7 @@ class JsonEncodeView extends View
                 return $utf8_encoded;
             }
         }
+
         $isList = true;
         for ($i = 0, reset($utf8_encoded); $i < count($utf8_encoded); $i++, next($utf8_encoded)) {
             if (key($utf8_encoded) !== $i) {
